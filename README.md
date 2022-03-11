@@ -4,6 +4,8 @@
 
 Codebase for [Revisiting spatio-temporal layouts for compositional action recognition](https://arxiv.org/abs/2111.01936).
 
+**This is the version by Michael Camilleri for own use**
+
 ## Dependencies
 
 If you use [Poetry](https://python-poetry.org/), running ```poetry install``` inside the project will suffice.
