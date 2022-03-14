@@ -121,7 +121,7 @@ class StltCollater:
 
     def __call__(self, batch):
         (
-            _,
+            video_id,
             categories,
             boxes,
             frame_types,
@@ -161,4 +161,4 @@ class StltCollater:
             "lengths": lengths,
             "src_key_padding_mask_boxes": src_key_padding_mask_boxes,
             "src_key_padding_mask_frames": src_key_padding_mask_frames,
-        }, labels
+        }, labels, video_id

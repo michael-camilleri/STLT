@@ -139,7 +139,9 @@ class Parser:
             "--output_path",
             type=str,
             default=None,
-            help="Path for storing Inference Classifications",
+            help="Path for storing Inference Classifications: this is a CSV file, in which the "
+                 "first column is the video-id and the subsequent columns the logits for each "
+                 "class.",
         )
 
     def parse_args(self):

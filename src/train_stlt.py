@@ -102,7 +102,7 @@ def train(args):
         # Training loop
         model.train(True)
         with tqdm(total=len(train_loader)) as pbar:
-            for inputs, labels in train_loader:
+            for inputs, labels, _ in train_loader:
                 # Remove past gradients
                 optimizer.zero_grad()
                 # Move tensors to device
@@ -126,7 +126,7 @@ def train(args):
         model.train(False)
         evaluator.reset()
         with torch.no_grad():
-            for inputs, labels in tqdm(val_loader):
+            for inputs, labels, _ in tqdm(val_loader):
                 # Move tensors to device
                 inputs = {key: val.to(device) for key, val in inputs.items()}
                 logits = model(inputs)
