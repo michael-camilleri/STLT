@@ -7,12 +7,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from layout_models.datasets import (
-    StltCollater,
-    StltDataConfig,
-    StltDataset,
-    category2id,
-)
+from layout_models.datasets import StltCollater, StltDataConfig, StltDataset
 from layout_models.modelling import Stlt, StltModelConfig
 from utils.data_utils import get_device
 from utils.evaluation import Evaluator
@@ -76,7 +71,7 @@ def train(args):
     # Prepare model
     model_config = StltModelConfig(
         num_classes=len(train_dataset.labels),
-        unique_categories=len(category2id),
+        unique_categories=len(train_data_config.categories),
         num_spatial_layers=args.num_spatial_layers,
         num_temporal_layers=args.num_temporal_layers,
         load_backbone_path=args.load_backbone_path,

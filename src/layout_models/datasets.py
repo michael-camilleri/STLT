@@ -3,13 +3,8 @@ import re
 
 import torch
 from torch.utils.data import Dataset
-from utils.constants import category2id, frame2type
-from utils.data_utils import (
-    fix_box,
-    get_test_layout_indices,
-    pad_sequence,
-    sample_train_layout_indices,
-)
+from utils.constants import frame2type
+from utils.data_utils import fix_box, get_test_layout_indices, pad_sequence, sample_train_layout_indices
 
 
 class StltDataConfig:
@@ -28,6 +23,10 @@ class StltDataConfig:
         self.num_frames = kwargs.pop("num_frames", 16)
         self.max_num_objects = kwargs.pop("max_num_objects", 7)
 
+        # Resolve Special Categories
+        _cats = json.load(open(labels_path))['categories']
+        self.categories = {'pad': 0, **_cats, 'cls': len(_cats) + 1}
+
 
 class StltDataset(Dataset):
     def __init__(
@@ -37,7 +36,7 @@ class StltDataset(Dataset):
         # Load dataset JSON file
         self.config = config
         self.json_file = json.load(open(self.config.dataset_path))
-        self.labels = json.load(open(self.config.labels_path))
+        self.labels = json.load(open(self.config.labels_path))['labels']
         self.videoid2size = json.load(open(self.config.videoid2size_path))
 
     def __len__(self):
@@ -62,7 +61,7 @@ class StltDataset(Dataset):
                 frame2type["empty"] if len(frame) == 0 else frame2type["regular"]
             )
             frame_boxes = [torch.tensor([0.0, 0.0, 1.0, 1.0])]
-            frame_categories = [category2id["cls"]]
+            frame_categories = [self.config.categories["cls"]]
             for element in frame:
                 # Prepare box
                 box = [element["x1"], element["y1"], element["x2"], element["y2"]]
@@ -74,10 +73,10 @@ class StltDataset(Dataset):
                 box = torch.tensor(box) / video_size
                 frame_boxes.append(box)
                 # Prepare category
-                category_name = (
-                    "object hand" if "hand" in element["category"] else "object"
-                )
-                frame_categories.append(category2id[category_name])
+                # category_name = (
+                #     "object hand" if "hand" in element["category"] else "object"
+                # )
+                frame_categories.append(self.config.categories[element["category"]])
             assert len(frame_boxes) == len(frame_categories)
             while len(frame_boxes) != self.config.max_num_objects + 1:
                 frame_boxes.append(torch.full((4,), 0.0))
@@ -92,7 +91,7 @@ class StltDataset(Dataset):
         boxes = torch.stack(boxes, dim=0)
         # Categories
         extract_category = torch.full((self.config.max_num_objects + 1,), 0)
-        extract_category[0] = category2id["cls"]
+        extract_category[0] = self.config.categories["cls"]
         categories.append(extract_category)
         categories = torch.stack(categories, dim=0)
         # Length
@@ -132,7 +131,7 @@ class StltCollater:
         # https://github.com/pytorch/pytorch/issues/24816
         # Pad categories
         pad_categories_tensor = torch.full((self.config.max_num_objects + 1,), 0)
-        pad_categories_tensor[0] = category2id["cls"]
+        pad_categories_tensor[0] = self.config.categories["cls"]
         categories = pad_sequence(categories, pad_tensor=pad_categories_tensor)
         # Pad boxes
         pad_boxes_tensor = torch.full((self.config.max_num_objects + 1, 4), 0.0)
