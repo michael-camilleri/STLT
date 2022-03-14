@@ -5,4 +5,6 @@ python src/inference_stlt.py \
     --test_dataset_path "/media/veracrypt5/Scratch/SomethingElse/curated/val_dataset.json" \
     --labels_path "/media/veracrypt5/Scratch/SomethingElse/labels.json" \
     --videoid2size_path "/media/veracrypt5/Scratch/SomethingElse/videoid2size.json" \
-    --checkpoint_path "/media/veracrypt5/MRC_Data/Models/STLT/Base/comp_split_detect_stlt.pt"
+    --output_path "/home/s1238640/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/test.csv" \
+    --checkpoint_path "/media/veracrypt5/MRC_Data/Models/STLT/Base/comp_split_detect_stlt.pt" \
+    --num_workers 2

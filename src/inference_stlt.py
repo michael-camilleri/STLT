@@ -15,6 +15,7 @@ from utils.data_utils import get_device
 from utils.evaluation import Evaluator
 from utils.parser import Parser
 
+import pandas as pd
 
 @torch.no_grad()
 def inference(args):
@@ -59,11 +60,15 @@ def inference(args):
     logging.info("Starting inference...")
     # Validation loop
     evaluator = Evaluator(len(test_dataset))
+    if args.output_path is not None:
+        output_logits = {}
     for inputs, labels in tqdm(test_loader):
         # Move tensors to device
         inputs = {key: val.to(device) for key, val in inputs.items()}
         logits = model(inputs)
         evaluator.process(logits, labels)
+        if args.output_path is not None:
+            output_logits.update({k: l for k, l in zip(inputs.keys(), logits.cpu().numpy())})
 
     top1_accuracy, top5_accuracy = evaluator.evaluate()
     logging.info("=================================")
@@ -72,6 +77,9 @@ def inference(args):
         f"{round(top5_accuracy * 100, 2)}% (TOP 5)."
     )
     logging.info("=================================")
+
+    if args.output_path is not None:
+        pd.DataFrame(output_logits).to_csv(args.output_path)
 
 
 def main():

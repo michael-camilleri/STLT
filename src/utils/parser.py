@@ -135,6 +135,12 @@ class Parser:
             default="models/best.pt",
             help="Checkpoint to a trained model.",
         )
+        self.parser.add_argument(
+            "--output_path",
+            type=str,
+            default=None,
+            help="Path for storing Inference Classifications",
+        )
 
     def parse_args(self):
         return self.parser.parse_args()
