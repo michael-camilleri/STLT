@@ -12,7 +12,7 @@
 #     [Offset]   - Offset from base data location to retrieve the data splits
 #
 #  USAGE:
-#     srun --time=1-23:00:00 --gres=gpu:1 --nodelist=charles18 bash/train_stlt.sh 64 0.00005 60 Fixed &> ~/logs/train_stlt.0001.Fixed.out
+#     srun --time=23:00:00 --gres=gpu:1 --nodelist=charles18 bash/train_stlt.sh 64 0.00005 60 Fixed &> ~/logs/train_stlt.0001.Fixed.out
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
