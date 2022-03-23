@@ -2,9 +2,21 @@
 
 ## Inference:
 python src/inference_stlt.py \
-    --test_dataset_path "/media/veracrypt5/Scratch/SomethingElse/curated/val_dataset.json" \
-    --labels_path "/media/veracrypt5/Scratch/SomethingElse/labels.json" \
-    --videoid2size_path "/media/veracrypt5/Scratch/SomethingElse/videoid2size.json" \
-    --output_path "/home/s1238640/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/test.csv" \
-    --checkpoint_path "/media/veracrypt5/MRC_Data/Models/STLT/Base/comp_split_detect_stlt.pt" \
-    --num_workers 2
+    --test_dataset_path "/media/veracrypt4/Q1/Snippets/Sample_0.1/Validate/STLT.Annotations.json" \
+    --labels_path "/media/veracrypt4/Q1/Snippets/Sample_0.1/STLT.Schema.json" \
+    --videoid2size_path "/media/veracrypt4/Q1/Snippets/Sample_0.1/STLT.Sizes.json" \
+    --output_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/test.csv" \
+    --checkpoint_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/sample.pth" \
+    --layout_num_frames 25 --num_spatial_layers 2 --num_temporal_layers 4 --num_workers 2
+
+# Default in most cases
+python src/train_stlt.py \
+    --labels_path "/media/veracrypt4/Q1/Snippets/Sample_0.1/STLT.Schema.json" \
+    --train_dataset_path "/media/veracrypt4/Q1/Snippets/Sample_0.1/Train/STLT.Annotations.json" \
+    --val_dataset_path "/media/veracrypt4/Q1/Snippets/Sample_0.1/Validate/STLT.Annotations.json" \
+    --videoid2size_path "/media/veracrypt4/Q1/Snippets/Sample_0.1/STLT.Sizes.json" \
+    --save_model_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/scratch.pth" \
+    --layout_num_frames 25 --num_spatial_layers 2 --num_temporal_layers 4 \
+    --batch_size 16 --learning_rate 5e-5 --weight_decay 1e-3 --clip_val 5.0 \
+    --epochs 5 --warmup_epochs 2 --num_workers 2 \
+    --log_filepath "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/scratch.log"
