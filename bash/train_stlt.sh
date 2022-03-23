@@ -81,7 +81,7 @@ echo ""
 # ===========
 echo " ===================================="
 echo " Copying Model Weights (as ${OUT_NAME})"
-mkdir -p "${HOME}/models/STLT/Trained/${OUT_NAME}"
+mkdir -p "${HOME}/models/STLT/Trained/"
 rsync --archive --compress --info=progress2 "${SCRATCH_MODELS}/" "${HOME}/models/STLT/Trained/"
 echo "   ++ ALL DONE! Hurray! ++"
 mail -s "Train_STLT on ${SLURM_JOB_NODELIST}:${OUT_NAME}" ${USER}@sms.ed.ac.uk <<< "Output Models copied as '${HOME}/models/STLT/Trained/${OUT_NAME}.pth'."
