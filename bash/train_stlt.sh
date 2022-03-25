@@ -22,7 +22,7 @@
 #        in my Jupyter notebook.
 
 # Do some Calculations/Preprocessing
-OUT_NAME=${3}_${1}_${2}
+OUT_NAME=S${5}T${6}_${3}_${1}_${2}
 
 # ===================
 # Environment setup
