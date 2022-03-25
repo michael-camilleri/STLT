@@ -143,6 +143,12 @@ class Parser:
                  "first column is the video-id and the subsequent columns the logits for each "
                  "class.",
         )
+        self.parser.add_argument(
+            "--select_best",
+            type=str,
+            default='average',
+            help="How to select the best model through the epochs: average, top1 or top5."
+        )
 
     def parse_args(self):
         return self.parser.parse_args()

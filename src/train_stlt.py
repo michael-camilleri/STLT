@@ -91,7 +91,7 @@ def train(args):
         num_warmup_steps=args.warmup_epochs * num_batches,
         num_training_steps=args.epochs * num_batches,
     )
-    evaluator = Evaluator(len(val_dataset))
+    evaluator = Evaluator(len(val_dataset), args.select_best)
     logging.info("Starting training...")
     for epoch in range(args.epochs):
         # Training loop
@@ -131,7 +131,7 @@ def train(args):
         if evaluator.is_best():
             logging.info("=================================")
             logging.info(
-                f"Found new best on epoch {epoch+1} with accuracy "
+                f"Found new best {evaluator.how_best} on epoch {epoch+1} with accuracy "
                 f"{round(top1_accuracy * 100, 2)}% (TOP 1), "
                 f"{round(top5_accuracy * 100, 2)}% (TOP 5). Saving model!"
             )
