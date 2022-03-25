@@ -10,9 +10,11 @@
 #     [Rate]     - Learning Rate
 #     [Epochs]   - Maximum Number of Epochs to train for
 #     [Offset]   - Offset from base data location to retrieve the data splits
+#     [Spatial]  - Number of Spatial Layers
+#     [Temporal] - Number of Temporal Layers
 #
 #  USAGE:
-#     srun --time=23:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo1 bash/train_stlt.sh 64 0.00005 50 Fixed &> ~/logs/train_stlt.00005.Fixed.out
+#     srun --time=23:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo1 bash/train_stlt.sh 64 0.00005 50 Fixed 2 4 &> ~/logs/train_stlt.00005.Fixed.out
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
@@ -69,7 +71,7 @@ python src/train_stlt.py  \
   --train_dataset_path "${SCRATCH_DATA}/Train/STLT.Annotations.json"  \
   --val_dataset_path "${SCRATCH_DATA}/Validate/STLT.Annotations.json" \
   --save_model_path "${SCRATCH_MODELS}/${OUT_NAME}.pth" \
-  --layout_num_frames 25 --num_spatial_layers 4 --num_temporal_layers 8 \
+  --layout_num_frames 25 --num_spatial_layers ${5} --num_temporal_layers ${6} \
   --batch_size ${1} --learning_rate ${2} --weight_decay 1e-3 --clip_val 5.0 \
   --epochs ${3} --warmup_epochs 2 --num_workers 2
 echo "   == Training Done =="
