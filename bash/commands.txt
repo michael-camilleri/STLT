@@ -5,8 +5,8 @@ python src/inference_stlt.py \
     --test_dataset_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Train/Fixed/Validate/STLT.Annotations.json" \
     --labels_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Common/STLT.Schema.json" \
     --videoid2size_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Common/STLT.Sizes.json" \
-    --output_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/Behaviour/Raw/Validate.00005.csv" \
-    --checkpoint_path "/media/veracrypt5/MRC_Data/Models/STLT/Trained/S4T8_Fixed/50_64_0.00005.pth" \
+    --output_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/Behaviour/Raw/S4T8LT.Validate.00005.csv" \
+    --checkpoint_path "/media/veracrypt5/MRC_Data/Models/STLT/Trained/Best=Top1/S4T8_50_64_0.00005.pth" \
     --layout_num_frames 25 --num_spatial_layers 4 --num_temporal_layers 8 --num_workers 2
 
 # Default in most cases
