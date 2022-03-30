@@ -72,8 +72,8 @@ python src/train_stlt.py  \
   --val_dataset_path "${SCRATCH_DATA}/Validate/STLT.Annotations.json" \
   --save_model_path "${SCRATCH_MODELS}/${OUT_NAME}.pth" \
   --layout_num_frames 25 --num_spatial_layers ${5} --num_temporal_layers ${6} \
-  --batch_size ${1} --learning_rate ${2} --weight_decay 1e-3 --clip_val 5.0 \
-  --epochs ${3} --warmup_epochs 2 --num_workers 2 --select_best top1
+  --batch_size ${1} --learning_rate ${2} --weight_decay 1e-5 --clip_val 5.0 \
+  --epochs ${3} --warmup_epochs 5 --num_workers 2 --select_best top1
 echo "   == Training Done =="
 mail -s "Train_STLT on ${SLURM_JOB_NODELIST}:${OUT_NAME}" ${USER}@sms.ed.ac.uk <<< "Model Training Completed."
 echo ""
