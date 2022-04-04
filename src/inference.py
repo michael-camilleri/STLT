@@ -78,14 +78,19 @@ def inference(args):
         evaluator.process(logits, batch["labels"])
         if args.output_path is not None:
             output_logits.update(
-                {vid: lg.cpu().numpy() for vid, lg in zip(batch['videos'], logits)}
+                {
+                    vid: lg.cpu().numpy() for vid, lg in zip(
+                        batch['video_id'], logits[args.model_name]
+                    )
+                }
             )
 
     metrics = evaluator.evaluate()
     logging.info("=================================")
     logging.info("The metrics are:")
-    for m in metrics.keys():
-        logging.info(f"{m}: {round(metrics[m] * 100, 2)}")
+    for m, scores in metrics.items():
+        for l, s in scores.items():
+            logging.info(f"{m}/{l}: {round(s * 100, 2)}")
     logging.info("=================================")
 
     if args.output_path is not None:
