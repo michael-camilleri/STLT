@@ -2,10 +2,13 @@
 
 ## Inference:
 python src/inference_stlt.py \
+Commands    --dataset_name something \
+    --dataset_type layout \
+    --model_name stlt \
     --test_dataset_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Train/Fixed/Validate/STLT.Annotations.json" \
     --labels_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Common/STLT.Schema.json" \
     --videoid2size_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Common/STLT.Sizes.json" \
-    --output_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/Behaviour/Model_Fixed/Raw/S4T8LT.Validate.000005.csv" \
+    --output_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/Behaviour/Model_Fixed/Raw/S4T8LT.Validate.000005.alt.csv" \
     --checkpoint_path "/media/veracrypt5/MRC_Data/Models/STLT/Trained/Best=Top1/S4T8_W=2_D=1e-5/S4T8_60_64_0.000005_W2.pth" \
     --layout_num_frames 25 --num_spatial_layers 4 --num_temporal_layers 8 --num_workers 2
 
