@@ -1,4 +1,4 @@
-frame2type = {"pad": 0, "start": 1, "regular": 2, "empty": 3, "extract": 4}
+
 
 # category2id = {
 #     "pad": 0,

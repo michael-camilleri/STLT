@@ -8,32 +8,18 @@ import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
-from torchvision.transforms import (
-    Compose,
-    Normalize,
-    RandomCrop,
-    Resize,
-    ToTensor,
-)
+from torchvision.transforms import Compose, Normalize, RandomCrop, Resize, ToTensor
 from torchvision.transforms import functional as TF
-from utils.data_utils import (
-    IdentityTransform,
-    VideoColorJitter,
-    fix_box,
-    get_test_layout_indices,
-    pad_sequence,
-    sample_appearance_indices,
-    sample_train_layout_indices,
-)
-
-from modelling.configs import DataConfig
+from src.utils.data_utils import IdentityTransform, VideoColorJitter, fix_box, \
+    get_test_layout_indices, pad_sequence, sample_appearance_indices, sample_train_layout_indices
+from src.modelling.configs import DataConfig
 
 
 class StltDataset(Dataset):
     def __init__(self, config: DataConfig):
         self.config = config
         self.json_file = json.load(open(self.config.dataset_path))
-        self.labels = json.load(open(self.config.labels_path))
+        self.labels = json.load(open(self.config.labels_path))['labels']
         self.videoid2size = json.load(open(self.config.videoid2size_path))
         # Find max num objects
         max_objects = -1
@@ -68,7 +54,7 @@ class StltDataset(Dataset):
                 else self.config.frame2type["regular"]
             )
             frame_boxes = [torch.tensor([0.0, 0.0, 1.0, 1.0])]
-            frame_categories = [self.config.category2id["cls"]]
+            frame_categories = [self.config.categories["cls"]]
             frame_scores = [1.0]
             # Iterate over the other objects
             for element in frame["frame_objects"]:
@@ -82,7 +68,7 @@ class StltDataset(Dataset):
                 box = torch.tensor(box) / video_size
                 frame_boxes.append(box)
                 # Prepare category
-                frame_categories.append(self.config.category2id[element["category"]])
+                frame_categories.append(self.config.categories[element["category"]])
                 # Prepare scores
                 frame_scores.append(element["score"])
             # Ensure that everything is of the same length and pad to the max number of objects
@@ -101,7 +87,7 @@ class StltDataset(Dataset):
         boxes.append(extract_box)
         # Categories
         extract_category = torch.full((self.config.max_num_objects + 1,), 0)
-        extract_category[0] = self.config.category2id["cls"]
+        extract_category[0] = self.config.categories["cls"]
         categories.append(extract_category)
         # Scores
         extract_score = torch.full((self.config.max_num_objects + 1,), 0.0)
@@ -126,10 +112,8 @@ class StltDataset(Dataset):
 
     def get_actions(self, sample):
         if self.config.dataset_name == "something":
-            actions = torch.tensor(
-                int(self.labels[re.sub("[\[\]]", "", sample["template"])])
-            )
-        elif self.config.dataset_name == "action_genome":
+            actions = torch.tensor(int(self.labels[re.sub("[\[\]]", "", sample["template"])]))
+        else:
             action_list = [int(action[1:]) for action in sample["actions"]]
             actions = torch.zeros(len(self.labels), dtype=torch.float)
             actions[action_list] = 1.0
@@ -245,7 +229,7 @@ class StltCollater:
         # https://github.com/pytorch/pytorch/issues/24816
         # Pad categories
         pad_categories_tensor = torch.full((self.config.max_num_objects + 1,), 0)
-        pad_categories_tensor[0] = self.config.category2id["cls"]
+        pad_categories_tensor[0] = self.config.categories["cls"]
         batch["categories"] = pad_sequence(
             batch["categories"], pad_tensor=pad_categories_tensor
         )

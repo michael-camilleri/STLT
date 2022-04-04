@@ -4,12 +4,14 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from modelling.datasets import DataConfig, collaters_factory, datasets_factory
-from modelling.configs import model_configs_factory
+from modelling.datasets import collaters_factory, datasets_factory
+from modelling.configs import DataConfig, model_configs_factory
 from modelling.models import models_factory
 from utils.evaluation import evaluators_factory
 from utils.parser import Parser
 from utils.train_inference_utils import get_device, move_batch_to_device
+
+import pandas as pd
 
 
 @torch.no_grad()
@@ -46,7 +48,7 @@ def inference(args):
     num_classes = len(test_dataset.labels)
     model_config = model_configs_factory[args.model_name](
         num_classes=num_classes,
-        unique_categories=len(data_config.category2id),
+        unique_categories=len(data_config.categories), # len(data_config.category2id),
         num_spatial_layers=args.num_spatial_layers,
         num_temporal_layers=args.num_temporal_layers,
         appearance_num_frames=args.appearance_num_frames,
@@ -69,13 +71,15 @@ def inference(args):
         )
     model.train(False)
     logging.info("Starting inference...")
-    evaluator = evaluators_factory[args.dataset_name](
-        num_samples, num_classes, model.logit_names
-    )
+    evaluator = evaluators_factory[args.dataset_name](num_samples, num_classes, model.logit_names)
+    output_logits = {} if args.output_path is not None else None
     for batch in tqdm(test_loader):
-        batch = move_batch_to_device(batch, device)
-        logits = model(batch)
+        logits = model(move_batch_to_device(batch, device))
         evaluator.process(logits, batch["labels"])
+        if args.output_path is not None:
+            output_logits.update(
+                {vid: lg.cpu().numpy() for vid, lg in zip(batch['videos'], logits)}
+            )
 
     metrics = evaluator.evaluate()
     logging.info("=================================")
@@ -83,6 +87,9 @@ def inference(args):
     for m in metrics.keys():
         logging.info(f"{m}: {round(metrics[m] * 100, 2)}")
     logging.info("=================================")
+
+    if args.output_path is not None:
+        pd.DataFrame(output_logits).T.to_csv(args.output_path, header=False)
 
 
 def main():

@@ -1,4 +1,5 @@
 # Stores the data and model configs
+import json
 
 
 class DataConfig:
@@ -26,67 +27,65 @@ class DataConfig:
         self.score_threshold = kwargs.pop("score_threshold", 0.5)
         self.appearance_num_frames = kwargs.pop("appearance_num_frames", 32)
         self.spatial_size = kwargs.pop("spatial_size", 112)
+
+        _cats = json.load(open(labels_path))['categories']
+        if self.dataset_name == "something":
+            self.categories = {'pad': 0, **_cats, 'cls': len(_cats) + 1}
+            self.frame2type = {"pad": 0, "start": 1, "regular": 2, "empty": 3, "extract": 4}
+        else:
+            self.categories = {'pad': 0, 'cls': 1, **_cats}
+            self.frame2type = {"pad": 0, "regular": 1, "extract": 2, "empty": 3}
+
         # Hacking :(
-        self.category2id = (
-            {
-                "pad": 0,
-                "hand": 1,
-                "object": 2,
-                "cls": 3,
-            }
-            if self.dataset_name == "something"
-            else {
-                "pad": 0,
-                "cls": 1,
-                "chair": 2,
-                "book": 3,
-                "medicine": 4,
-                "vacuum": 5,
-                "food": 6,
-                "groceries": 7,
-                "floor": 8,
-                "mirror": 9,
-                "closet/cabinet": 10,
-                "doorway": 11,
-                "paper/notebook": 12,
-                "picture": 13,
-                "phone/camera": 14,
-                "sofa/couch": 15,
-                "sandwich": 16,
-                "cup/glass/bottle": 17,
-                "towel": 18,
-                "box": 19,
-                "blanket": 20,
-                "television": 21,
-                "bag": 22,
-                "refrigerator": 23,
-                "table": 24,
-                "light": 25,
-                "broom": 26,
-                "shoe": 27,
-                "doorknob": 28,
-                "bed": 29,
-                "window": 30,
-                "shelf": 31,
-                "door": 32,
-                "pillow": 33,
-                "laptop": 34,
-                "dish": 35,
-                "clothes": 36,
-                "person": 37,
-            }
-        )
-        self.frame2type = (
-            {
-                "pad": 0,
-                "start": 1,
-                "regular": 2,
-                "empty": 3,
-                "extract": 4,
-            }
-            if self.dataset_name == "something"
-            else {"pad": 0, "regular": 1, "extract": 2, "empty": 3}
-        )
+        # self.category2id = (
+        #     {
+        #         "pad": 0,
+        #         "hand": 1,
+        #         "object": 2,
+        #         "cls": 3,
+        #     }
+        #     if self.dataset_name == "something"
+        #     else {
+        #         "pad": 0,
+        #         "cls": 1,
+        #         "chair": 2,
+        #         "book": 3,
+        #         "medicine": 4,
+        #         "vacuum": 5,
+        #         "food": 6,
+        #         "groceries": 7,
+        #         "floor": 8,
+        #         "mirror": 9,
+        #         "closet/cabinet": 10,
+        #         "doorway": 11,
+        #         "paper/notebook": 12,
+        #         "picture": 13,
+        #         "phone/camera": 14,
+        #         "sofa/couch": 15,
+        #         "sandwich": 16,
+        #         "cup/glass/bottle": 17,
+        #         "towel": 18,
+        #         "box": 19,
+        #         "blanket": 20,
+        #         "television": 21,
+        #         "bag": 22,
+        #         "refrigerator": 23,
+        #         "table": 24,
+        #         "light": 25,
+        #         "broom": 26,
+        #         "shoe": 27,
+        #         "doorknob": 28,
+        #         "bed": 29,
+        #         "window": 30,
+        #         "shelf": 31,
+        #         "door": 32,
+        #         "pillow": 33,
+        #         "laptop": 34,
+        #         "dish": 35,
+        #         "clothes": 36,
+        #         "person": 37,
+        #     }
+        # )
 
 
 class GeneralModelConfig:

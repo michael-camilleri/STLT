@@ -4,8 +4,11 @@ from typing import Tuple
 
 class EvaluatorSomething:
     def __init__(
-        self, total_instances: int, total_classes: int, logit_names: Tuple[str],
-            how_best='average': str
+            self,
+            total_instances: int,
+            total_classes: int,
+            logit_names: Tuple[str],
+            how_best: str='average'
     ):
         self.total_instances = total_instances
         self.total_classes = total_classes
@@ -36,27 +39,19 @@ class EvaluatorSomething:
             ).item()
 
     def evaluate(self):
-        metrics = {}
+        metrics = {'top1': {}, 'top5': {}}
         for logit_name in self.logit_names:
-            metrics[f"{logit_name}_top1_accuracy"] = (
-                self.corrects[f"{logit_name}_top1"] / self.total_instances
-            )
-            metrics[f"{logit_name}_top5_accuracy"] = (
-                self.corrects[f"{logit_name}_top5"] / self.total_instances
-            )
+            metrics['top1'][logit_name] = self.corrects[f"{logit_name}_top1"] / self.total_instances
+            metrics['top5'][logit_name] = self.corrects[f"{logit_name}_top5"] / self.total_instances
 
         return metrics
 
     def is_best(self):
-        metrics = self.evaluate()
-        # Get currect accuracy
-        todo
-        if self.how_best == 'average':
-            cur_accuracy = sum(
-                [metrics[accuracy_type] for accuracy_type in metrics.keys()]
-            ) / len(metrics)
-        elif self.how_best == 'top1':
-            cur_accuracy =
+        # Get Top1/Top5 Accuracies
+        cur_accuracy = {k: sum([vv for vv in v.values]) for k, v in self.evaluate().items()}
+        cur_accuracy = \
+            sum(cur_accuracy.values) if self.how_best == 'average' else cur_accuracy[self.how_best]
+
         # Validate whether it's the best model
         if cur_accuracy > self.best_acc:
             self.best_acc = cur_accuracy

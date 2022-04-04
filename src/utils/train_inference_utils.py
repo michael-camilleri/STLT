@@ -56,8 +56,7 @@ def add_weight_decay(model, weight_decay: float):
 
 def move_batch_to_device(batch, device):
     return {
-        key: val.to(device) if isinstance(val, torch.Tensor) else val
-        for key, val in batch.items()
+        k: v.to(device) if isinstance(v, torch.Tensor) else v for k, v in batch.items()
     }
 
 

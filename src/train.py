@@ -11,13 +11,8 @@ from modelling.configs import model_configs_factory, DataConfig
 from modelling.models import models_factory
 from utils.evaluation import evaluators_factory
 from utils.parser import Parser
-from utils.train_inference_utils import (
-    add_weight_decay,
-    get_device,
-    get_linear_schedule_with_warmup,
-    move_batch_to_device,
-    Criterion,
-)
+from utils.train_inference_utils import add_weight_decay, get_device, \
+    get_linear_schedule_with_warmup, move_batch_to_device, Criterion
 
 
 def train(args):
@@ -85,9 +80,9 @@ def train(args):
     logging.info("Preparing model...")
     # Prepare model
     model_config = model_configs_factory[args.model_name](
-        num_classes=len(train_dataset.labels), #num_classes,
+        num_classes=num_classes,
         appearance_num_frames=args.appearance_num_frames,
-        unique_categories=len(train_data_config.categories), #len(val_data_config.category2id),
+        unique_categories=len(val_data_config.categories),
         num_spatial_layers=args.num_spatial_layers,
         num_temporal_layers=args.num_temporal_layers,
         load_backbone_path=args.load_backbone_path,
@@ -150,8 +145,9 @@ def train(args):
             torch.save(model.state_dict(), args.save_model_path)
             if args.save_backbone_path:
                 torch.save(model.backbone.state_dict(), args.save_backbone_path)
-        for m in metrics.keys():
-            logging.info(f"{m}: {round(metrics[m] * 100, 2)}")
+        for m, scores in metrics.items():
+            for l, s in scores.items():
+                logging.info(f"{m}/{l}: {round(s * 100, 2)}")
 
 
 def main():
