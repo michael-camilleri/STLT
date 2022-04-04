@@ -5,6 +5,18 @@ class Parser:
     def __init__(self, parser_description: str):
         self.parser = argparse.ArgumentParser(description=parser_description)
         self.parser.add_argument(
+            "--dataset_name",
+            type=str,
+            default=None,
+            help="The name of the dataset, either something or action_genome",
+        )
+        self.parser.add_argument(
+            "--dataset_type",
+            type=str,
+            default=None,
+            help="The type of the dataset - layout, appearance or multimodal.",
+        )
+        self.parser.add_argument(
             "--log_filepath",
             type=str,
             default=None,
@@ -13,25 +25,25 @@ class Parser:
         self.parser.add_argument(
             "--train_dataset_path",
             type=str,
-            default="data/train_dataset.json",
+            default=None,
             help="Path to the train dataset.",
         )
         self.parser.add_argument(
             "--val_dataset_path",
             type=str,
-            default="data/val_dataset.json",
+            default=None,
             help="Path to the val dataset.",
         )
         self.parser.add_argument(
             "--test_dataset_path",
             type=str,
-            default="data/val_dataset.json",
+            default=None,
             help="Path to the test dataset.",
         )
         self.parser.add_argument(
             "--labels_path",
             type=str,
-            default="data/something-something-v2-labels.json",
+            default=None,
             help="Path to the labels.",
         )
         self.parser.add_argument(
@@ -41,10 +53,28 @@ class Parser:
             help="Path to the videoid2size json file.",
         )
         self.parser.add_argument(
+            "--videos_path",
+            type=str,
+            default=None,
+            help="Path to the videos saved as HDF5.",
+        )
+        self.parser.add_argument(
             "--layout_num_frames",
             type=int,
             default=16,
             help="The number of layout frames to sample per video.",
+        )
+        self.parser.add_argument(
+            "--appearance_num_frames",
+            type=int,
+            default=32,
+            help="The number of appearance frames to sample per video.",
+        )
+        self.parser.add_argument(
+            "--score_threshold",
+            type=float,
+            default=0.5,
+            help="The score threshold for the categories.",
         )
         self.parser.add_argument(
             "--num_spatial_layers",
@@ -99,6 +129,18 @@ class Parser:
             type=int,
             default=2,
             help="The number warmup epochs.",
+        )
+        self.parser.add_argument(
+            "--model_name",
+            type=str,
+            default=None,
+            help="The name of the model.",
+        )
+        self.parser.add_argument(
+            "--resnet_model_path",
+            type=str,
+            default=None,
+            help="Path to the pre-trained ResNet3D.",
         )
         self.parser.add_argument(
             "--save_model_path",

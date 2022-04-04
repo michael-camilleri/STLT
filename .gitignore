@@ -4,6 +4,7 @@ models/
 .vscode/
 __pycache__
 .venv/
+logs/
 
 .idea/workspace.xml
 .idea/tasks.xml

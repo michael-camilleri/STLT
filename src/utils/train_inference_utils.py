@@ -1,4 +1,21 @@
-from torch import optim
+import logging
+from typing import Dict
+
+import torch
+from torch import nn, optim
+
+
+def get_device(logger: logging.Logger):
+    device = torch.device("cpu")
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        for i in range(torch.cuda.device_count()):
+            logger.warning(f"{torch.cuda.get_device_properties(f'cuda:{i}')}")
+            logger.warning(
+                f"Current occupied memory: {torch.cuda.memory_allocated(i) * 1e-9} GB"
+            )
+    logging.warning(f"Using device {device}!!!")
+    return device
 
 
 def get_linear_schedule_with_warmup(
@@ -35,3 +52,25 @@ def add_weight_decay(model, weight_decay: float):
         {"params": no_decay, "weight_decay": 0.0},
         {"params": decay, "weight_decay": weight_decay},
     ]
+
+
+def move_batch_to_device(batch, device):
+    return {
+        key: val.to(device) if isinstance(val, torch.Tensor) else val
+        for key, val in batch.items()
+    }
+
+
+class Criterion(nn.Module):
+    def __init__(self, dataset_name: str):
+        super(Criterion, self).__init__()
+        self.loss_function = (
+            nn.CrossEntropyLoss()
+            if dataset_name == "something"
+            else nn.BCEWithLogitsLoss()
+        )
+
+    def forward(self, logits: Dict[str, torch.Tensor], labels: torch.Tensor):
+        return sum(
+            [self.loss_function(logits[key], labels) for key in logits.keys()]
+        ) / len(logits)

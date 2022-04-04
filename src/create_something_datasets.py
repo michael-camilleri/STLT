@@ -19,15 +19,18 @@ def prepare_dataset(
                 for frame in annotations[i][e["id"]]:
                     boxes = [
                         {
-                            "category": box["category"],
+                            "category": "hand"
+                            if "hand" in box["category"]
+                            else "object",
                             "x1": box["box2d"]["x1"],
                             "y1": box["box2d"]["y1"],
                             "x2": box["box2d"]["x2"],
                             "y2": box["box2d"]["y2"],
+                            "score": 1.0,
                         }
                         for box in frame["labels"]
                     ]
-                    instance["frames"].append(boxes)
+                    instance["frames"].append({"frame_objects": boxes})
                 prepared_dataset.append(instance)
 
     return prepared_dataset
@@ -60,7 +63,9 @@ def create_datasets(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Creates a dataset.")
+    parser = argparse.ArgumentParser(
+        description="Creates a dataset for Something-Something and Something-Else."
+    )
     parser.add_argument(
         "--train_data_path",
         type=str,
