@@ -1,6 +1,7 @@
 import io
 import json
 import math
+import os
 import re
 
 import h5py
@@ -19,7 +20,7 @@ class StltDataset(Dataset):
     def __init__(self, config: DataConfig):
         self.config = config
         self.json_file = json.load(open(self.config.dataset_path))
-        self.labels = json.load(open(self.config.labels_path))['labels']
+        self.labels = self.config.labels  # Shallow copy of labels
         self.videoid2size = json.load(open(self.config.videoid2size_path))
         # Find max num objects
         max_objects = -1
@@ -120,13 +121,84 @@ class StltDataset(Dataset):
         return actions
 
 
+class FrameDataSet(Dataset):
+    """
+    Note, that for this class, the Videos Path is the absolute path to the base Frames
+    """
+    def __init__(self, config: DataConfig, json_file=None):
+        self.config = config
+        self.json_file = json_file if json_file is not None else json.load(open(self.config.dataset_path))
+        self.labels = self.config.labels
+        self.videoid2size = json.load(open(self.config.videoid2size_path))
+        self.resize = Resize(math.floor(self.config.spatial_size * 1.15))
+        self.transforms = Compose(
+            [
+                ToTensor(),
+                Normalize(mean=self.config.normaliser_means, std=self.config.normaliser_stds),
+            ]
+        )
+
+    def __len__(self):
+        return len(self.json_file)
+
+    def __sample_frames(self, sample):
+        """
+        Wrapper for Sampling in my specific use-case
+
+        :param sample: Sample to which this pertains
+        :return:
+        """
+        _num_frames = len(sample['frames'])
+        _num_sampled = self.config.appearance_num_frames
+        if _num_frames < _num_sampled:
+            return np.arange(_num_frames)
+        else:
+            return np.sort(np.random.choice(np.arange(_num_frames), _num_sampled, replace=False))
+
+    def __getitem__(self, idx: int):
+        # Prepare MetaData
+        _sample = self.json_file[idx]
+        indices = self.__sample_frames(_sample)
+        # Load all frames in the indices
+        frm_pth = os.path.join(self.config.videos_path, _sample['video'], "img_{:05d}.jpg")
+        raw_video_frames = [
+            self.resize(Image.open(frm_pth.format(ix+_sample['offset']))) for ix in indices
+        ]
+
+        # Transform Frames
+        augment = IdentityTransform()
+        if self.config.train:
+            augment = VideoColorJitter()
+            top, left, height, width = RandomCrop.get_params(
+                raw_video_frames[0],
+                (self.config.spatial_size, self.config.spatial_size),
+            )
+        video_frames = []
+        for i in range(len(raw_video_frames)):
+            frame = raw_video_frames[i]
+            frame = augment(frame)
+            frame = (
+                TF.crop(frame, top, left, height, width)
+                if self.config.train
+                else TF.center_crop(frame, self.config.spatial_size)
+            )
+            frame = self.transforms(frame)
+            video_frames.append(frame)
+        video_frames = torch.stack(video_frames, dim=0).transpose(0, 1)
+
+        # Obtain video label
+        action = torch.tensor(int(self.labels[re.sub("[\[\]]", "", _sample["template"])]))
+
+        return {"video_id": _sample['id'], "video_frames": video_frames, "labels": action}
+
+
 class AppearanceDataset(Dataset):
     def __init__(self, config: DataConfig, json_file=None):
         self.config = config
         self.json_file = json_file
         if not self.json_file:
             self.json_file = json.load(open(self.config.dataset_path))
-        self.labels = json.load(open(self.config.labels_path))
+        self.labels = json.load(open(self.config.labels_path))['labels']
         self.videoid2size = json.load(open(self.config.videoid2size_path))
         self.resize = Resize(math.floor(self.config.spatial_size * 1.15))
         self.transforms = Compose(
@@ -195,11 +267,11 @@ class AppearanceDataset(Dataset):
 class MultimodalDataset(Dataset):
     def __init__(self, config: DataConfig):
         self.layout_dataset = StltDataset(config)
-        self.appearance_dataset = AppearanceDataset(
-            config, self.layout_dataset.json_file
-        )
-        # Making a shallow copy of the labels
-        # for easier interfacing in train.py and inference.py
+        if config.videos_as_frames:
+            self.appearance_dataset = FrameDataSet(config, self.layout_dataset.json_file)
+        else:
+            self.appearance_dataset = AppearanceDataset(config, self.layout_dataset.json_file)
+        # Making a shallow copy of the labels for easier interfacing in train.py and inference.py
         self.labels = self.layout_dataset.labels
 
     def __len__(self):
@@ -214,6 +286,7 @@ class MultimodalDataset(Dataset):
 
 
 datasets_factory = {
+    "frames": FrameDataSet,
     "appearance": AppearanceDataset,
     "layout": StltDataset,
     "multimodal": MultimodalDataset,
@@ -304,6 +377,7 @@ class MultiModalCollater:
 
 
 collaters_factory = {
+    "frames": AppearanceCollater,
     "appearance": AppearanceCollater,
     "layout": StltCollater,
     "multimodal": MultiModalCollater,

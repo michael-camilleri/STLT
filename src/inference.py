@@ -29,6 +29,10 @@ def inference(args):
         layout_num_frames=args.layout_num_frames,
         appearance_num_frames=args.appearance_num_frames,
         videos_path=args.videos_path,
+        normaliser_mean=args.normaliser_mean,
+        normaliser_std=args.normaliser_std,
+        videos_as_frames=args.videos_as_frames,
+        spatial_size=args.resize_height,
         train=False,
     )
     test_dataset = datasets_factory[args.dataset_type](data_config)
@@ -53,6 +57,7 @@ def inference(args):
         num_temporal_layers=args.num_temporal_layers,
         appearance_num_frames=args.appearance_num_frames,
         resnet_model_path=args.resnet_model_path,
+        num_appearance_layers=args.num_appearance_layers,
     )
     logging.info("==================================")
     logging.info(f"The model's configuration is:\n{model_config}")

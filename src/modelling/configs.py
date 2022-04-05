@@ -27,13 +27,17 @@ class DataConfig:
         self.score_threshold = kwargs.pop("score_threshold", 0.5)
         self.appearance_num_frames = kwargs.pop("appearance_num_frames", 32)
         self.spatial_size = kwargs.pop("spatial_size", 112)
+        self.normaliser_means = kwargs.pop("normaliser_mean", (0.5, 0.5, 0.5))
+        self.normaliser_stds = kwargs.pop("normaliser_std", (0.5, 0.5, 0.5))
+        self.videos_as_frames = kwargs.pop("videos_as_frames", False)
 
-        _cats = json.load(open(labels_path))['categories']
+        _schema = json.load(open(labels_path))
+        self.labels = _schema['labels']
         if self.dataset_name == "something":
-            self.categories = {'pad': 0, **_cats, 'cls': len(_cats) + 1}
+            self.categories = {'pad': 0, **_schema['categories'], 'cls': len(_schema['categories']) + 1}
             self.frame2type = {"pad": 0, "start": 1, "regular": 2, "empty": 3, "extract": 4}
         else:
-            self.categories = {'pad': 0, 'cls': 1, **_cats}
+            self.categories = {'pad': 0, 'cls': 1, **_schema['categories']}
             self.frame2type = {"pad": 0, "regular": 1, "extract": 2, "empty": 3}
 
         # Hacking :(

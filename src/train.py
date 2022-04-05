@@ -38,6 +38,10 @@ def train(args):
         layout_num_frames=args.layout_num_frames,
         appearance_num_frames=args.appearance_num_frames,
         videos_path=args.videos_path,
+        normaliser_mean=args.normaliser_mean,
+        normaliser_std=args.normaliser_std,
+        videos_as_frames=args.videos_as_frames,
+        spatial_size=args.resize_height,
         train=True,
     )
     train_dataset = datasets_factory[args.dataset_type](train_data_config)
@@ -51,6 +55,10 @@ def train(args):
         layout_num_frames=args.layout_num_frames,
         appearance_num_frames=args.appearance_num_frames,
         videos_path=args.videos_path,
+        normaliser_mean=args.normaliser_mean,
+        normaliser_std=args.normaliser_std,
+        videos_as_frames=args.videos_as_frames,
+        spatial_size=args.resize_height,
         train=False,
     )
     val_dataset = datasets_factory[args.dataset_type](val_data_config)
@@ -88,6 +96,9 @@ def train(args):
         load_backbone_path=args.load_backbone_path,
         freeze_backbone=args.freeze_backbone,
         resnet_model_path=args.resnet_model_path,
+        num_appearance_layers=args.num_appearance_layers,
+        num_fusion_layers=args.num_fusion_layers,
+        hidden_size=args.hidden_size,
     )
     logging.info("==================================")
     logging.info(f"The model's configuration is:\n{model_config}")

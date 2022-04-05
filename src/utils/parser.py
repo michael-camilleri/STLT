@@ -178,6 +178,48 @@ class Parser:
             help="Checkpoint to a trained model.",
         )
         self.parser.add_argument(
+            "--num_appearance_layers",
+            type=int,
+            default=4,
+            help="Number of Appearance Layers (Resnet)"
+        )
+        self.parser.add_argument(
+            "--num_fusion_layers",
+            type=int,
+            default=4,
+            help="Number of Fusion Layers"
+        )
+        self.parser.add_argument(
+            "--hidden_size",
+            type=int,
+            default=768,
+            help="Default/Base Hidden dimension size"
+        )
+        self.parser.add_argument(
+            "--videos_as_frames",
+            action="store_true",
+            default=False,
+            help="Whether to retrieve appearance information as raw frames or hdf5 files"
+        )
+        self.parser.add_argument(
+            "--normaliser_mean",
+            type=float,
+            nargs=3,
+            help="The normalisation Means (for images)"
+        )
+        self.parser.add_argument(
+            "--normaliser_std",
+            type=float,
+            nargs=3,
+            help="The normalisation standard deviations (for images)"
+        )
+        self.parser.add_argument(
+            "--resize_height",
+            type=float,
+            default=112,
+            help="Spatial Size to resize frames to (height)"
+        )
+        self.parser.add_argument(
             "--output_path",
             type=str,
             default=None,
