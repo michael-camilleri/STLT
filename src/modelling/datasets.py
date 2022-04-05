@@ -11,9 +11,9 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import Compose, Normalize, RandomCrop, Resize, ToTensor
 from torchvision.transforms import functional as TF
-from src.utils.data_utils import IdentityTransform, VideoColorJitter, fix_box, \
+from utils.data_utils import IdentityTransform, VideoColorJitter, fix_box, \
     get_test_layout_indices, pad_sequence, sample_appearance_indices, sample_train_layout_indices
-from src.modelling.configs import DataConfig
+from modelling.configs import DataConfig
 
 
 class StltDataset(Dataset):
