@@ -48,7 +48,7 @@ class EvaluatorSomething:
 
     def is_best(self):
         # Get Top1/Top5 Accuracies
-        cur_accuracy = {k: sum([vv for vv in v.values]) for k, v in self.evaluate().items()}
+        cur_accuracy = {k: sum([vv for vv in v.values()]) for k, v in self.evaluate().items()}
         cur_accuracy = \
             sum(cur_accuracy.values) if self.how_best == 'average' else cur_accuracy[self.how_best]
 
