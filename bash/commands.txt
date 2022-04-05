@@ -25,7 +25,7 @@ python src/train_stlt.py \
     --log_filepath "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/scratch.log"
 
 # Train CACNF
-python src/train_stlt.py \
+python src/train.py \
     --dataset_name something --dataset_type multimodal --model_name cacnf --videos_as_frames \
     --train_dataset_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Sample_0.1/Train/Fixed/Train/STLT.Annotations.json" \
     --val_dataset_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Sample_0.1/Train/Fixed/Validate/STLT.Annotations.json" \

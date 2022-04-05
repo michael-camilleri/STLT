@@ -4,8 +4,7 @@
 #  Scope:
 #     Trains the STLT Model on own data
 #
-#  Script takes the following parameters: note that the batch size is defined by the product of
-#    Cores and Images.
+#  Script takes the following parameters:
 #     [Batch]    - Batch-Size
 #     [Rate]     - Learning Rate
 #     [Epochs]   - Maximum Number of Epochs to train for
