@@ -132,7 +132,7 @@ echo ""
 echo " ===================================="
 echo " Copying Model Weights (as ${OUT_NAME})"
 mkdir -p ${OUTPUT_DIR}
-rsync --archive --compress --info=progress2 "${SCRATCH_MODELS}/${OUT_NAME}" "${OUTPUT_DIR}"
+rsync --archive --compress --info=progress2 "${SCRATCH_MODELS}/${OUT_NAME}.pth" "${OUTPUT_DIR}"
 rm -rf ${SCRATCH_MODELS}
 echo "   ++ ALL DONE! Hurray! ++"
 #mail -s "Train_CACNF on ${SLURM_JOB_NODELIST}:${OUT_NAME}" ${USER}@sms.ed.ac.uk <<< "Output Models

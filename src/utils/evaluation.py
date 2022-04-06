@@ -15,7 +15,7 @@ class EvaluatorSomething:
         self.total_classes = total_classes
         self.logit_names = logit_names
         self.reset()
-        self.best_acc = 0.0
+        self.best_acc = -1
         self.which_score = which_score.lower()
         self.how_best = how_best.lower()
 
