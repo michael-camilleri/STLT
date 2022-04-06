@@ -8,6 +8,7 @@ class EvaluatorSomething:
             total_instances: int,
             total_classes: int,
             logit_names: Tuple[str],
+            which_score: str='average',
             how_best: str='average'
     ):
         self.total_instances = total_instances
@@ -15,6 +16,7 @@ class EvaluatorSomething:
         self.logit_names = logit_names
         self.reset()
         self.best_acc = 0.0
+        self.which_score = which_score.lower()
         self.how_best = how_best.lower()
 
     def reset(self):
@@ -48,9 +50,14 @@ class EvaluatorSomething:
 
     def is_best(self):
         # Get Top1/Top5 Accuracies
-        cur_accuracy = {k: sum([vv for vv in v.values()]) for k, v in self.evaluate().items()}
-        cur_accuracy = \
-            sum(cur_accuracy.values) if self.how_best == 'average' else cur_accuracy[self.how_best]
+        if self.which_score == 'average':
+            cur_accuracy = {k: sum([vv for vv in v.values()]) for k, v in self.evaluate().items()}
+        else:
+            cur_accuracy = {k: v[self.which_score] for k, v in self.evaluate().items()}
+        if self.how_best == 'average':
+            cur_accuracy = sum(cur_accuracy.values())
+        else:
+            cur_accuracy = cur_accuracy[self.how_best]
 
         # Validate whether it's the best model
         if cur_accuracy > self.best_acc:

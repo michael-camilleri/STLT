@@ -33,6 +33,7 @@ def inference(args):
         normaliser_std=args.normaliser_std,
         videos_as_frames=args.videos_as_frames,
         spatial_size=args.resize_height,
+        debug_size=args.debug_size,
         train=False,
     )
     test_dataset = datasets_factory[args.dataset_type](data_config)
@@ -58,6 +59,8 @@ def inference(args):
         appearance_num_frames=args.appearance_num_frames,
         resnet_model_path=args.resnet_model_path,
         num_appearance_layers=args.num_appearance_layers,
+        num_fusion_layers=args.num_fusion_layers,
+        hidden_size=args.hidden_size,
     )
     logging.info("==================================")
     logging.info(f"The model's configuration is:\n{model_config}")
@@ -76,19 +79,19 @@ def inference(args):
         )
     model.train(False)
     logging.info("Starting inference...")
-    evaluator = evaluators_factory[args.dataset_name](num_samples, num_classes, model.logit_names)
-    output_logits = {} if args.output_path is not None else None
+    evaluator = evaluators_factory[args.dataset_name](
+        num_samples, num_classes, model.logit_names
+    )
+    # Handle Output Logits
+    output = {l: {} for l in args.which_logits} if args.output_path is not None else None
     for batch in tqdm(test_loader):
         logits = model(move_batch_to_device(batch, device))
         evaluator.process(logits, batch["labels"])
         if args.output_path is not None:
-            output_logits.update(
-                {
-                    vid: lg.cpu().numpy() for vid, lg in zip(
-                        batch['video_id'], logits[args.model_name]
-                    )
-                }
-            )
+            for lg in args.which_logits:
+                output[lg].update(
+                    {v: l.cpu().numpy() for v, l in zip(batch['video_id'], logits[lg])}
+                )
 
     metrics = evaluator.evaluate()
     logging.info("=================================")
@@ -99,7 +102,8 @@ def inference(args):
     logging.info("=================================")
 
     if args.output_path is not None:
-        pd.DataFrame(output_logits).T.to_csv(args.output_path, header=False)
+        for lg, output_logits in output.items():
+            pd.DataFrame(output_logits).T.to_csv(args.output_path + f'.{lg}.csv', header=False)
 
 
 def main():

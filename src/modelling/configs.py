@@ -30,6 +30,7 @@ class DataConfig:
         self.normaliser_means = kwargs.pop("normaliser_mean", (0.5, 0.5, 0.5))
         self.normaliser_stds = kwargs.pop("normaliser_std", (0.5, 0.5, 0.5))
         self.videos_as_frames = kwargs.pop("videos_as_frames", False)
+        self.debug_size = kwargs.pop("debug_size", None)
 
         _schema = json.load(open(labels_path))
         self.labels = _schema['labels']

@@ -34,7 +34,7 @@ class StltDataset(Dataset):
         self.config.max_num_objects = max_objects
 
     def __len__(self):
-        return len(self.json_file)
+        return self.config.debug_size if self.config.debug_size is not None else len(self.json_file)
 
     def __getitem__(self, idx: int):
         video_id = self.json_file[idx]["id"]
@@ -139,7 +139,7 @@ class FrameDataSet(Dataset):
         )
 
     def __len__(self):
-        return len(self.json_file)
+        return self.config.debug_size if self.config.debug_size is not None else len(self.json_file)
 
     def __sample_frames(self, sample):
         """

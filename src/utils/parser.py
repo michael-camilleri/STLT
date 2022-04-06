@@ -225,13 +225,32 @@ class Parser:
             default=None,
             help="Path for storing Inference Classifications: this is a CSV file, in which the "
                  "first column is the video-id and the subsequent columns the logits for each "
-                 "class.",
+                 "class. Note that the extension will be added automatically on a per-logit basis.",
+        )
+        self.parser.add_argument(
+            "--which_score",
+            type=str,
+            default='average',
+            help="On which model output to base the score: if average, based on average over all."
+        )
+        self.parser.add_argument(
+            "--which_logits",
+            type=str,
+            nargs='+',
+            default=('stlt',),
+            help='For which models to output logits'
         )
         self.parser.add_argument(
             "--select_best",
             type=str,
             default='average',
             help="How to select the best model through the epochs: average, top1 or top5."
+        )
+        self.parser.add_argument(
+            "--debug_size",
+            type=int,
+            default=None,
+            help="For Debugging, size of datasets to operate on"
         )
 
     def parse_args(self):

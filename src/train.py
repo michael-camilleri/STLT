@@ -42,6 +42,7 @@ def train(args):
         normaliser_std=args.normaliser_std,
         videos_as_frames=args.videos_as_frames,
         spatial_size=args.resize_height,
+        debug_size=args.debug_size,
         train=True,
     )
     train_dataset = datasets_factory[args.dataset_type](train_data_config)
@@ -59,6 +60,7 @@ def train(args):
         normaliser_std=args.normaliser_std,
         videos_as_frames=args.videos_as_frames,
         spatial_size=args.resize_height,
+        debug_size=args.debug_size,
         train=False,
     )
     val_dataset = datasets_factory[args.dataset_type](val_data_config)
@@ -115,7 +117,7 @@ def train(args):
         num_training_steps=args.epochs * num_batches,
     )
     evaluator = evaluators_factory[args.dataset_name](
-        num_validation_samples, num_classes, model.logit_names, args.select_best
+        num_validation_samples, num_classes, model.logit_names, args.which_score, args.select_best
     )
     logging.info("Starting training...")
     for epoch in range(args.epochs):
