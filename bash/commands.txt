@@ -17,13 +17,13 @@ python src/inference.py \
     --labels_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Sample_0.1/Common/STLT.Schema.json" \
     --videoid2size_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Sample_0.1/Common/STLT.Sizes.json" \
     --videos_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Train/Frames" \
-    --checkpoint_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/scratch.pth" \
+    --checkpoint_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/sample.pth" \
     --resnet_model_path "/media/veracrypt5/MRC_Data/Models/CACNF/Base/r3d50_KMS_200ep.pth" \
-    --output_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/sample.csv" \
-    --layout_num_frames 25 --appearance_num_frames 32 --hidden_size 252 \
-    --num_spatial_layers 1 --num_temporal_layers 2 --num_appearance_layers 1 --num_fusion_layers 2 \
+    --output_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/sample" \
+    --layout_num_frames 25 --appearance_num_frames 32 --hidden_size 768 \
+    --num_spatial_layers 4 --num_temporal_layers 8 --num_appearance_layers 4 --num_fusion_layers 4 \
     --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
-    --batch_size 1 --num_workers 0
+    --which_logits caf --batch_size 1 --num_workers 0 --debug_size 20
 
 # Train STLT (Obsolete)
 python src/train_stlt.py \

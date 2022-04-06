@@ -80,7 +80,8 @@ echo "Consolidating Data/Models in ${SCRATCH_HOME}"
 mkdir -p ${SCRATCH_DATA}
 echo "  -> Synchronising Data"
 echo "     .. Schemas .."
-cp ${HOME}/data/behaviour/Common/STLT* ${SCRATCH_DATA}/
+rsync --archive --update --compress --include 'STLT*' --exclude '*' \
+      --info=progress2 ${HOME}/data/behaviour/Common/ ${SCRATCH_DATA}
 echo "     .. Annotations .."
 rsync --archive --update --compress --include '*/' --include 'STLT*' --exclude '*' \
       --info=progress2 ${HOME}/data/behaviour/Train/${PATH_OFFSET}/ ${SCRATCH_DATA}
@@ -132,8 +133,7 @@ echo ""
 echo " ===================================="
 echo " Copying Model Weights (as ${OUT_NAME})"
 mkdir -p ${OUTPUT_DIR}
-rsync --archive --compress --info=progress2 "${SCRATCH_MODELS}/${OUT_NAME}.pth" "${OUTPUT_DIR}"
-rm -rf ${SCRATCH_MODELS}
+rsync --archive --compress --info=progress2 --remove-source-files "${SCRATCH_MODELS}/${OUT_NAME}.pth" "${OUTPUT_DIR}"
 echo "   ++ ALL DONE! Hurray! ++"
 #mail -s "Train_CACNF on ${SLURM_JOB_NODELIST}:${OUT_NAME}" ${USER}@sms.ed.ac.uk <<< "Output Models
 #copied as '${HOME}/models/STLT/Trained/${OUT_NAME}.pth'."
