@@ -1,16 +1,29 @@
 # Some General Comments
 
-## Inference:
-python src/inference_stlt.py \
-Commands    --dataset_name something \
-    --dataset_type layout \
-    --model_name stlt \
+# Infer STLT:
+python src/inference.py \
+    --dataset_name something --dataset_type layout --model_name stlt \
     --test_dataset_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Train/Fixed/Validate/STLT.Annotations.json" \
     --labels_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Common/STLT.Schema.json" \
     --videoid2size_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Common/STLT.Sizes.json" \
     --output_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/Behaviour/Model_Fixed/Raw/S4T8LT.Validate.000005.alt.csv" \
     --checkpoint_path "/media/veracrypt5/MRC_Data/Models/STLT/Trained/Best=Top1/S4T8_W=2_D=1e-5/S4T8_60_64_0.000005_W2.pth" \
     --layout_num_frames 25 --num_spatial_layers 4 --num_temporal_layers 8 --num_workers 2
+
+# Infer CACNF:
+python src/inference.py \
+    --dataset_name something --dataset_type multimodal --model_name cacnf --videos_as_frames \
+    --test_dataset_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Sample_0.1/Train/Fixed/Validate/STLT.Annotations.json" \
+    --labels_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Sample_0.1/Common/STLT.Schema.json" \
+    --videoid2size_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Sample_0.1/Common/STLT.Sizes.json" \
+    --videos_path "/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Train/Frames" \
+    --checkpoint_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/scratch.pth" \
+    --resnet_model_path "/media/veracrypt5/MRC_Data/Models/CACNF/Base/r3d50_KMS_200ep.pth" \
+    --output_path "${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/sample.csv" \
+    --layout_num_frames 25 --appearance_num_frames 32 --hidden_size 252 \
+    --num_spatial_layers 1 --num_temporal_layers 2 --num_appearance_layers 1 --num_fusion_layers 2 \
+    --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
+    --batch_size 1 --num_workers 0
 
 # Train STLT (Obsolete)
 python src/train_stlt.py \

@@ -215,7 +215,7 @@ class Parser:
         )
         self.parser.add_argument(
             "--resize_height",
-            type=float,
+            type=int,
             default=112,
             help="Spatial Size to resize frames to (height)"
         )
