@@ -167,7 +167,7 @@ class FrameDataSet(Dataset):
 
         # Transform Frames
         augment = IdentityTransform()
-        if self.config.train:
+        if self.config.train:  ## Needs changing in terms of the augmentations
             augment = VideoColorJitter()
             top, left, height, width = RandomCrop.get_params(
                 raw_video_frames[0],
