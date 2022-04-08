@@ -92,6 +92,7 @@ def train(args):
     model_config = model_configs_factory[args.model_name](
         num_classes=num_classes,
         appearance_num_frames=args.appearance_num_frames,
+        spatial_size=args.resize_height,
         unique_categories=len(val_data_config.categories),
         num_spatial_layers=args.num_spatial_layers,
         num_temporal_layers=args.num_temporal_layers,

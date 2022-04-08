@@ -130,7 +130,7 @@ class FrameDataSet(Dataset):
         self.json_file = json_file if json_file is not None else json.load(open(self.config.dataset_path))
         self.labels = self.config.labels
         self.videoid2size = json.load(open(self.config.videoid2size_path))
-        self.resize = Resize(math.floor(self.config.spatial_size * 1.15))
+        self.resize = Resize(self.config.spatial_size)
         self.transforms = Compose(
             [
                 ToTensor(),
@@ -159,31 +159,16 @@ class FrameDataSet(Dataset):
         # Prepare MetaData
         _sample = self.json_file[idx]
         indices = self.__sample_frames(_sample)
+
         # Load all frames in the indices
         frm_pth = os.path.join(self.config.videos_path, _sample['video'], "img_{:05d}.jpg")
         raw_video_frames = [
             self.resize(Image.open(frm_pth.format(ix+_sample['offset']))) for ix in indices
         ]
 
-        # Transform Frames
-        augment = IdentityTransform()
-        if self.config.train:  ## Needs changing in terms of the augmentations
-            augment = VideoColorJitter()
-            top, left, height, width = RandomCrop.get_params(
-                raw_video_frames[0],
-                (self.config.spatial_size, self.config.spatial_size),
-            )
-        video_frames = []
-        for i in range(len(raw_video_frames)):
-            frame = raw_video_frames[i]
-            frame = augment(frame)
-            frame = (
-                TF.crop(frame, top, left, height, width)
-                if self.config.train
-                else TF.center_crop(frame, self.config.spatial_size)
-            )
-            frame = self.transforms(frame)
-            video_frames.append(frame)
+        # Build Batch
+        augment = VideoColorJitter() if self.config.train else IdentityTransform()
+        video_frames = [self.transforms(augment(frame)) for frame in raw_video_frames]
         video_frames = torch.stack(video_frames, dim=0).transpose(0, 1)
 
         # Obtain video label

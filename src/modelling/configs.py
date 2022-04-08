@@ -138,6 +138,7 @@ class AppearanceModelConfig(GeneralModelConfig):
         self.resnet_model_path = kwargs.pop("resnet_model_path", None)
         assert self.resnet_model_path, "resnet_model_path must be provided"
         self.num_appearance_layers = kwargs.pop("num_appearance_layers", 4)
+        self.spatial_size = kwargs.pop("spatial_size", 112)
 
     def __repr__(self):
         return (

@@ -57,6 +57,7 @@ def inference(args):
         num_spatial_layers=args.num_spatial_layers,
         num_temporal_layers=args.num_temporal_layers,
         appearance_num_frames=args.appearance_num_frames,
+        spatial_size=args.resize_height,
         resnet_model_path=args.resnet_model_path,
         num_appearance_layers=args.num_appearance_layers,
         num_fusion_layers=args.num_fusion_layers,

@@ -115,7 +115,7 @@ python src/train.py  \
   --videos_path "${SCRATCH_DATA}/Frames" \
   --resnet_model_path "${SCRATCH_MODELS}/resnet.base.pth" \
   --save_model_path "${SCRATCH_MODELS}/${OUT_NAME}.pth" \
-  --layout_num_frames 25 --appearance_num_frames 32 --resize_height ${RESOLUTION} \
+  --layout_num_frames 25 --appearance_num_frames 25 --resize_height ${RESOLUTION} \
   --num_spatial_layers ${SPATIAL} --num_temporal_layers ${TEMPORAL} \
   --num_appearance_layers ${APPEARANCE} --num_fusion_layers ${FUSION} \
   --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
