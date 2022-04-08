@@ -96,6 +96,7 @@ def train(args):
         unique_categories=len(val_data_config.categories),
         num_spatial_layers=args.num_spatial_layers,
         num_temporal_layers=args.num_temporal_layers,
+        layout_num_frames=args.layout_num_frames,  # Added this to also pass in num_frames.
         load_backbone_path=args.load_backbone_path,
         freeze_backbone=args.freeze_backbone,
         resnet_model_path=args.resnet_model_path,

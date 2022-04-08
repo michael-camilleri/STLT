@@ -85,15 +85,13 @@ class FramesEmbeddings(nn.Module):
     def __init__(self, config: StltModelConfig):
         super(FramesEmbeddings, self).__init__()
         self.layout_embedding = SpatialTransformer(config)
-        self.position_embeddings = nn.Embedding(
-            config.layout_num_frames, config.hidden_size
-        )
+        # Changed from config.layout_num_frames
+        self.position_embeddings = nn.Embedding(config.layout_num_frames*2, config.hidden_size)
         self.frame_type_embedding = nn.Embedding(5, config.hidden_size, padding_idx=0)
         self.layer_norm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
-        self.register_buffer(
-            "position_ids", torch.arange(config.layout_num_frames).expand((1, -1))
-        )
+        # Changed from config.layout_num_frames
+        self.register_buffer("position_ids", torch.arange(config.layout_num_frames*2).expand((1, -1)))
 
     def forward(self, batch: Dict[str, torch.Tensor]):
         # [Batch size, Num. frames, Hidden size]
@@ -101,9 +99,7 @@ class FramesEmbeddings(nn.Module):
         # Frame type and position embeddings
         frame_types_embeddings = self.frame_type_embedding(batch["frame_types"])
         num_frames = frame_types_embeddings.size()[1]
-        position_embeddings = self.position_embeddings(
-            self.position_ids[:, :num_frames]
-        )
+        position_embeddings = self.position_embeddings(self.position_ids[:, :num_frames])
         # Preparing everything together
         embeddings = layouts_embeddings + position_embeddings + frame_types_embeddings
         embeddings = self.dropout(self.layer_norm(embeddings))
