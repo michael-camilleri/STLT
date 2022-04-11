@@ -66,6 +66,8 @@ def inference(args):
     logging.info("==================================")
     logging.info(f"The model's configuration is:\n{model_config}")
     logging.info("==================================")
+    # clean up to make better use of memory
+    torch.cuda.empty_cache()
     model = models_factory[args.model_name](model_config).to(device)
     try:
         model.load_state_dict(torch.load(args.checkpoint_path, map_location=device))
