@@ -86,12 +86,14 @@ class FramesEmbeddings(nn.Module):
         super(FramesEmbeddings, self).__init__()
         self.layout_embedding = SpatialTransformer(config)
         # Changed from config.layout_num_frames
-        self.position_embeddings = nn.Embedding(config.layout_num_frames*2, config.hidden_size)
+        self.position_embeddings = nn.Embedding(config.layout_num_frames+1, config.hidden_size)
         self.frame_type_embedding = nn.Embedding(5, config.hidden_size, padding_idx=0)
         self.layer_norm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         # Changed from config.layout_num_frames
-        self.register_buffer("position_ids", torch.arange(config.layout_num_frames*2).expand((1, -1)))
+        self.register_buffer(
+            "position_ids", torch.arange(config.layout_num_frames+1).expand((1, -1))
+        )
 
     def forward(self, batch: Dict[str, torch.Tensor]):
         # [Batch size, Num. frames, Hidden size]
