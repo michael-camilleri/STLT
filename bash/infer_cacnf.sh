@@ -58,7 +58,7 @@ RESULT_PATH="${HOME}/results/CACNF/${MODEL_PATH}"
 # ===================
 # Environment setup
 # ===================
-echo "Setting up Conda enviroment on ${SLURM_JOB_NODELIST}: Config=${OUT_NAME}"
+echo "Setting up Conda enviroment on ${SLURM_JOB_NODELIST}"
 set -e # Make script bail out after first error
 source activate py3stlt   # Activate Conda Environment
 echo "Libraries from: ${LD_LIBRARY_PATH}"
