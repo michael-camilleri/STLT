@@ -21,7 +21,7 @@
 #  USAGE:
 #     srun --time=1-23:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo1 \
 #         bash/infer_cacnf.sh 4 8 4 4 112 \
-#         Fixed N &> ~/logs/log_file.log
+#         "Fixed/A[4-8-4-4]_I[112]_L[16_0.000005_60_2]_CAF.pth" Validate Fixed N &> ~/logs/log_file.log
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
