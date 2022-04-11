@@ -129,7 +129,7 @@ class FrameDataSet(Dataset):
         self.config = config
         self.json_file = json_file if json_file is not None else json.load(open(self.config.dataset_path))
         self.labels = self.config.labels
-        self.videoid2size = json.load(open(self.config.videoid2size_path))
+        # self.videoid2size = json.load(open(self.config.videoid2size_path))
         self.resize = Resize(self.config.spatial_size)
         self.transforms = Compose(
             [
