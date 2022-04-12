@@ -124,19 +124,32 @@ class StltDataset(Dataset):
 class FrameDataSet(Dataset):
     """
     Note, that for this class, the Videos Path is the absolute path to the base Frames
+
+    Note also, that currently, this supports only all videos of the same size.
     """
     def __init__(self, config: DataConfig, json_file=None):
         self.config = config
         self.json_file = json_file if json_file is not None else json.load(open(self.config.dataset_path))
         self.labels = self.config.labels
-        # self.videoid2size = json.load(open(self.config.videoid2size_path))
-        self.resize = Resize(self.config.spatial_size)
-        self.transforms = Compose(
-            [
+        # Resolve output Frame-Size: this is inferred from the first video and then scaled
+        _frame_size = np.asarray(list(json.load(open(self.config.videoid2size_path)).values())[0])
+        _frame_size = (_frame_size / np.min(_frame_size) * self.config.min_scale).astype(int)
+        # Resolve enlarge to allow Random-Crop
+        if self.config.train:
+            _frame_enlarge = (_frame_size * self.config.crop_scale).astype(int).tolist()
+            self.transforms = Compose([
+                Resize(_frame_enlarge),  # First Scale to appropriate scale
+                RandomCrop(_frame_size.tolist()),  # Now crop (return original if crop_scale == 1)
+                VideoColorJitter(),  # Apply colour jitter
                 ToTensor(),
                 Normalize(mean=self.config.normaliser_means, std=self.config.normaliser_stds),
-            ]
-        )
+            ])
+        else:
+            self.transforms = Compose([
+                Resize(_frame_size.tolist()),
+                ToTensor(),
+                Normalize(mean=self.config.normaliser_means, std=self.config.normaliser_stds),
+            ])
 
     def __len__(self):
         return self.config.debug_size if self.config.debug_size is not None else len(self.json_file)
@@ -160,15 +173,12 @@ class FrameDataSet(Dataset):
         _sample = self.json_file[idx]
         indices = self.__sample_frames(_sample)
 
-        # Load all frames in the indices
+        # Load all frames by their indices
         frm_pth = os.path.join(self.config.videos_path, _sample['video'], "img_{:05d}.jpg")
-        raw_video_frames = [
-            self.resize(Image.open(frm_pth.format(ix+_sample['offset']))) for ix in indices
-        ]
+        raw_video_frames = [Image.open(frm_pth.format(ix+_sample['offset'])) for ix in indices]
 
         # Build Batch
-        augment = VideoColorJitter() if self.config.train else IdentityTransform()
-        video_frames = [self.transforms(augment(frame)) for frame in raw_video_frames]
+        video_frames = [self.transforms(frame) for frame in raw_video_frames]
         video_frames = torch.stack(video_frames, dim=0).transpose(0, 1)
 
         # Obtain video label
@@ -185,7 +195,7 @@ class AppearanceDataset(Dataset):
             self.json_file = json.load(open(self.config.dataset_path))
         self.labels = json.load(open(self.config.labels_path))['labels']
         self.videoid2size = json.load(open(self.config.videoid2size_path))
-        self.resize = Resize(math.floor(self.config.spatial_size * 1.15))
+        self.resize = Resize(math.floor(self.config.min_scale * 1.15))
         self.transforms = Compose(
             [
                 ToTensor(),
@@ -221,7 +231,7 @@ class AppearanceDataset(Dataset):
             augment = VideoColorJitter()
             top, left, height, width = RandomCrop.get_params(
                 raw_video_frames[0],
-                (self.config.spatial_size, self.config.spatial_size),
+                (self.config.min_scale, self.config.min_scale),
             )
 
         video_frames = []

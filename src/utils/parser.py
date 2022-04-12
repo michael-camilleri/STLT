@@ -220,6 +220,12 @@ class Parser:
             help="Spatial Size to resize frames to (height)"
         )
         self.parser.add_argument(
+            "--crop_scale",
+            type=float,
+            default=1.0,
+            help="Scaling prior to cropping"
+        )
+        self.parser.add_argument(
             "--output_path",
             type=str,
             default=None,
