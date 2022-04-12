@@ -53,12 +53,12 @@ def inference(args):
     num_classes = len(test_dataset.labels)
     model_config = model_configs_factory[args.model_name](
         num_classes=num_classes,
+        appearance_num_frames=args.appearance_num_frames,
+        spatial_size=args.resize_height,
         unique_categories=len(data_config.categories), # len(data_config.category2id),
         num_spatial_layers=args.num_spatial_layers,
         num_temporal_layers=args.num_temporal_layers,
-        appearance_num_frames=args.appearance_num_frames,
         layout_num_frames=args.layout_num_frames,  # Added this to also pass in num_frames.
-        spatial_size=args.resize_height,
         resnet_model_path=args.resnet_model_path,
         num_appearance_layers=args.num_appearance_layers,
         num_fusion_layers=args.num_fusion_layers,

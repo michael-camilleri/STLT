@@ -11,6 +11,7 @@
 #     [Appearance] - Number of Appearance Layers (on top of ResNet)
 #     [Fusion] - Number of Fusion Layers
 #     [Resolution] - Image Height Size
+#
 #   -- Paths/Setup --
 #     [Model]    - Model Path to load checkpoing from
 #     [DataSet]  - Which Dataset to infer for
@@ -116,7 +117,7 @@ python src/inference.py \
     --num_spatial_layers ${SPATIAL} --num_temporal_layers ${TEMPORAL} \
     --num_appearance_layers ${APPEARANCE} --num_fusion_layers ${FUSION} \
     --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
-    --which_logits caf --batch_size 16 --num_workers 2
+    --which_logits caf --batch_size 16 --num_workers 2 --debug_size 100
 echo "   == Inference Done =="
 echo ""
 

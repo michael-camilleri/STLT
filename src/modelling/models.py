@@ -262,6 +262,7 @@ class TransformerResnet(nn.Module):
         )
         self.cls_token = nn.Parameter(torch.zeros(1, 1, config.hidden_size))
         self.pos_embed = nn.Parameter(torch.zeros(self.__emb_sz(config), 1, config.hidden_size))
+        print(self.pos_embed.size) ## DEBUG
         self.classifier = nn.Linear(config.hidden_size, config.num_classes)
 
     def forward_features(self, batch):
