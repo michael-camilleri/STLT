@@ -22,9 +22,7 @@
 #                       known that the machine contains the right data splits.
 #
 #  USAGE:
-#     srun --time=1-23:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo1 \
-#         bash/infer_cacnf.sh 4 8 4 4 112 \
-#         "Fixed/A[4-8-4-4]_I[112]_L[16_0.000005_60_2]_CAF.pth" Validate Fixed N &> ~/logs/log_file.log
+#     srun --time=1-23:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo2 bash/infer_cacnf.sh 4 8 4 4 128 16 "Fixed/A[4-8-4-4]_I[128]_L[16_0.000005_2_1]_CAF" Validate Fixed N &> ~/logs/infer_1.log
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures

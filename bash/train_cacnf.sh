@@ -23,8 +23,7 @@
 
 #
 #  USAGE:
-#     srun --time=1-23:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo1 bash/train_cacnf.sh \
-#          4 8 4 4 112 16 0.000005 50 2 Fixed N &> ~/logs/log_file.log
+#     srun --time=10-23:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo2 bash/train_cacnf.sh 4 8 4 4 128 16 0.000005 2 1 Fixed N &> ~/logs/train_debug_1.log
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
@@ -104,6 +103,7 @@ echo ""
 # ===========
 echo " ===================================="
 echo " Training Model (BS=${BATCH_SIZE}, LR=${LR}) on ${PATH_OFFSET} for ${MAX_EPOCHS}(${WARMUP_ITER}) epochs"
+mkdir -p ${OUTPUT_DIR}
 
 python src/train.py  \
   --dataset_name something --dataset_type multimodal --model_name cacnf --videos_as_frames \
@@ -113,7 +113,7 @@ python src/train.py  \
   --videoid2size_path "${SCRATCH_DATA}/STLT.Sizes.json"  \
   --videos_path "${SCRATCH_DATA}/Frames" \
   --resnet_model_path "${SCRATCH_MODELS}/resnet.base.pth" \
-  --save_model_path "${SCRATCH_MODELS}/${OUT_NAME}.pth" \
+  --save_model_path "${OUTPUT_DIR}/${OUT_NAME}.pth" \
   --layout_num_frames 25 --appearance_num_frames 25 --resize_height ${RESOLUTION} \
   --num_spatial_layers ${SPATIAL} --num_temporal_layers ${TEMPORAL} \
   --num_appearance_layers ${APPEARANCE} --num_fusion_layers ${FUSION} \
@@ -127,13 +127,10 @@ echo "   == Training Done =="
 echo ""
 
 # ===========
-# Copy Data
+# Nothing to copy, since I save directly to output disk
 # ===========
-echo " ===================================="
-echo " Copying Model Weights (as ${OUT_NAME})"
-mkdir -p ${OUTPUT_DIR}
-rsync --archive --compress --info=progress2 --remove-source-files "${SCRATCH_MODELS}/${OUT_NAME}.pth" "${OUTPUT_DIR}"
+#echo " ===================================="
+#echo " Copying Model Weights (as ${OUT_NAME})"
+#rsync --archive --compress --info=progress2 --remove-source-files "${SCRATCH_MODELS}/${OUT_NAME}.pth" "${OUTPUT_DIR}"
 echo "   ++ ALL DONE! Hurray! ++"
-#mail -s "Train_CACNF on ${SLURM_JOB_NODELIST}:${OUT_NAME}" ${USER}@sms.ed.ac.uk <<< "Output Models
-#copied as '${HOME}/models/STLT/Trained/${OUT_NAME}.pth'."
 conda deactivate
