@@ -120,7 +120,7 @@ python src/train.py  \
   --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
   --batch_size ${BATCH_SIZE} --learning_rate ${LR} --weight_decay 1e-5 --clip_val 5.0 \
   --epochs ${MAX_EPOCHS} --warmup_epochs ${WARMUP_ITER} \
-  --select_best top1 --which_score caf --num_workers 2 --debug_size 100
+  --select_best top1 --which_score caf --num_workers 2
 echo "   == Training Done =="
 #mail -s "Train_CACNF on ${SLURM_JOB_NODELIST}:${OUT_NAME}" ${USER}@sms.ed.ac.uk <<< "Model Training
 #Completed."
