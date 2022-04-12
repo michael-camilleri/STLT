@@ -11,9 +11,11 @@
 #     [Appearance] - Number of Appearance Layers (on top of ResNet)
 #     [Fusion] - Number of Fusion Layers
 #     [Resolution] - Image Height Size
-#
+#     [Batch_size] - Due to a weird architectural strategy, it seems that the batch sizes must
+#                    match
+
 #   -- Paths/Setup --
-#     [Model]    - Model Path to load checkpoing from
+#     [Model]    - Model Path to load checkpoint from: note it should NOT contain the .pth extension
 #     [DataSet]  - Which Dataset to infer for
 #     [Offset]   - Offset from base data location to retrieve the data splits
 #     [Frames]   - Y/N: Indicates if Frames should be rsynced: this is done to save time if it is
@@ -37,11 +39,12 @@ TEMPORAL=${2}
 APPEARANCE=${3}
 FUSION=${4}
 RESOLUTION=${5}
+BATCH_SIZE=${6}
 
-MODEL_PATH=${6}
-DATASET=${7}
-PATH_OFFSET=${8}
-FORCE_FRAMES=${9,,}
+MODEL_PATH=${7}
+DATASET=${8}
+PATH_OFFSET=${9}
+FORCE_FRAMES=${10,,}
 
 # Derivative Values
 if [ "${DATASET,,}" = "test" ]; then
@@ -93,7 +96,7 @@ fi
 mkdir -p ${SCRATCH_MODELS}
 echo "  -> Synchronising Models"
 rsync --archive --update --compress ${HOME}/models/CACNF/Base/r3d50_KMS_200ep.pth ${SCRATCH_MODELS}/resnet.base.pth
-rsync --archive --update --compress ${HOME}/models/CACNF/Trained/${MODEL_PATH} ${SCRATCH_MODELS}/inference.trained.pth
+rsync --archive --update --compress ${HOME}/models/CACNF/Trained/${MODEL_PATH}.pth ${SCRATCH_MODELS}/inference.trained.pth
 echo "   ----- DONE -----"
 echo ""
 
@@ -117,7 +120,7 @@ python src/inference.py \
     --num_spatial_layers ${SPATIAL} --num_temporal_layers ${TEMPORAL} \
     --num_appearance_layers ${APPEARANCE} --num_fusion_layers ${FUSION} \
     --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
-    --which_logits caf --batch_size 16 --num_workers 2 --debug_size 100
+    --which_logits caf --batch_size ${BATCH_SIZE} --num_workers 2 --debug_size 100
 echo "   == Inference Done =="
 echo ""
 
