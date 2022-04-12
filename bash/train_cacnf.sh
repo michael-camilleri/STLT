@@ -16,6 +16,7 @@
 #     [Rate]     - Learning Rate
 #     [Epochs]   - Maximum Number of Training Epochs
 #     [Warmup]   - Number of Warmup Epochs
+#     [Resize]   - Random-Resize augmentation (float)
 #   -- Paths/Setup --
 #     [Offset]   - Offset from base data location to retrieve the data splits
 #     [Frames]   - Y/N: Indicates if Frames should be rsynced: this is done to save time if it is
@@ -43,12 +44,13 @@ BATCH_SIZE=${6}
 LR=${7}
 MAX_EPOCHS=${8}
 WARMUP_ITER=${9}
+RESIZE_CROP=${10}
 
-PATH_OFFSET=${10}
-FORCE_FRAMES=${11,,}
+PATH_OFFSET=${11}
+FORCE_FRAMES=${12,,}
 
 # Derivative Values
-OUT_NAME=A[${SPATIAL}-${TEMPORAL}-${APPEARANCE}-${FUSION}]_I[${RESOLUTION}]_L[${BATCH_SIZE}_${LR}_${MAX_EPOCHS}_${WARMUP_ITER}]_CAF
+OUT_NAME=A[${SPATIAL}-${TEMPORAL}-${APPEARANCE}-${FUSION}]_I[${RESOLUTION}]_L[${BATCH_SIZE}_${LR}_${MAX_EPOCHS}_${WARMUP_ITER}_${RESIZE_CROP}]_CAF
 
 # Path Values
 SCRATCH_HOME=/disk/scratch/${USER}
@@ -119,7 +121,7 @@ python src/train.py  \
   --num_appearance_layers ${APPEARANCE} --num_fusion_layers ${FUSION} \
   --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
   --batch_size ${BATCH_SIZE} --learning_rate ${LR} --weight_decay 1e-5 --clip_val 5.0 \
-  --epochs ${MAX_EPOCHS} --warmup_epochs ${WARMUP_ITER} \
+  --epochs ${MAX_EPOCHS} --warmup_epochs ${WARMUP_ITER} --crop_scale ${RESIZE_CROP} \
   --select_best top1 --which_score caf --num_workers 2
 echo "   == Training Done =="
 #mail -s "Train_CACNF on ${SLURM_JOB_NODELIST}:${OUT_NAME}" ${USER}@sms.ed.ac.uk <<< "Model Training
