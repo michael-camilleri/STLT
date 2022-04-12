@@ -161,7 +161,10 @@ def train(args):
             logging.info(f"Found new best {evaluator.how_best} on epoch {epoch+1}!")
             logging.info("=================================")
             torch.save(model.state_dict(), args.save_model_path)
-            print('Size of Pos_Embed (before save): ', model.backbone.appearance_branch.pos_embed.size)  ## DEBUG
+            print(  ## DEBUG
+                'Size of Pos_Embed (before save): ',  ## DEBUG
+                model.backbone.appearance_branch.pos_embed.size()  ## DEBUG
+            )  ## DEBUG
             if args.save_backbone_path:
                 torch.save(model.backbone.state_dict(), args.save_backbone_path)
         for m, scores in metrics.items():
