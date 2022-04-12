@@ -61,7 +61,7 @@ def train(args):
         normaliser_std=args.normaliser_std,
         videos_as_frames=args.videos_as_frames,
         spatial_size=args.resize_height,
-        crop_scale=1.0, # Force to 1 although still should be ignored
+        crop_scale=args.crop_scale,
         debug_size=args.debug_size,
         train=False,
     )

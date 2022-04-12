@@ -22,7 +22,7 @@
 #                       known that the machine contains the right data splits.
 #
 #  USAGE:
-#     srun --time=1-23:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo2 bash/infer_cacnf.sh 4 8 4 4 128 16 "Fixed/A[4-8-4-4]_I[128]_L[16_0.000005_2_1]_CAF" Validate Fixed N &> ~/logs/infer_1.log
+#     srun --time=1-23:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo2 bash/infer_cacnf.sh 4 8 4 4 128 1.0 16 "Fixed/A[4-8-4-4]_I[128]_L[16_0.000005_2_1]_CAF" Validate Fixed N &> ~/logs/infer_1.log
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
@@ -37,12 +37,13 @@ TEMPORAL=${2}
 APPEARANCE=${3}
 FUSION=${4}
 RESOLUTION=${5}
-BATCH_SIZE=${6}
+RESIZE_CROP=${6}
+BATCH_SIZE=${7}
 
-MODEL_PATH=${7}
-DATASET=${8}
-PATH_OFFSET=${9}
-FORCE_FRAMES=${10,,}
+MODEL_PATH=${8}
+DATASET=${9}
+PATH_OFFSET=${10}
+FORCE_FRAMES=${11,,}
 
 # Derivative Values
 if [ "${DATASET,,}" = "test" ]; then

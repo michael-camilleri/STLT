@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
-from torchvision.transforms import Compose, Normalize, RandomCrop, Resize, ToTensor
+from torchvision.transforms import Compose, Normalize, RandomCrop, CenterCrop, Resize, ToTensor
 from torchvision.transforms import functional as TF
 from utils.data_utils import IdentityTransform, VideoColorJitter, fix_box, \
     get_test_layout_indices, pad_sequence, sample_appearance_indices, sample_train_layout_indices
@@ -135,18 +135,23 @@ class FrameDataSet(Dataset):
         _frame_size = np.asarray(list(json.load(open(self.config.videoid2size_path)).values())[0])
         _frame_size = (_frame_size / np.min(_frame_size) * self.config.min_scale).astype(int)
         # Resolve enlarge to allow Random-Crop
+        _frame_enlarge = (_frame_size * self.config.crop_scale).astype(int).tolist()
+        _frame_size = _frame_size.tolist()
+        # Note that in both Training/Validation, we need to follow the same procedure of scaling
+        #    up and then down, as this ensures that the scale is always the same. The difference
+        #    is that in Validation/Test, we do a fixed center-crop.
         if self.config.train:
-            _frame_enlarge = (_frame_size * self.config.crop_scale).astype(int).tolist()
             self.transforms = Compose([
                 Resize(_frame_enlarge),  # First Scale to appropriate scale
-                RandomCrop(_frame_size.tolist()),  # Now crop (return original if crop_scale == 1)
+                RandomCrop(_frame_size),  # Now crop (return original if crop_scale == 1)
                 VideoColorJitter(),  # Apply colour jitter
                 ToTensor(),
                 Normalize(mean=self.config.normaliser_means, std=self.config.normaliser_stds),
             ])
         else:
             self.transforms = Compose([
-                Resize(_frame_size.tolist()),
+                Resize(_frame_enlarge),  # Again resize
+                CenterCrop(_frame_size), # And Crop
                 ToTensor(),
                 Normalize(mean=self.config.normaliser_means, std=self.config.normaliser_stds),
             ])
