@@ -222,7 +222,7 @@ class Parser:
         self.parser.add_argument(
             "--crop_scale",
             type=float,
-            default=1.0,
+            default=1.15,
             help="Scaling prior to cropping"
         )
         self.parser.add_argument(

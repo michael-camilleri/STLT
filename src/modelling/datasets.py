@@ -133,10 +133,10 @@ class FrameDataSet(Dataset):
         self.labels = self.config.labels
         # Resolve output Frame-Size: this is inferred from the first video and then scaled
         _frame_size = np.asarray(list(json.load(open(self.config.videoid2size_path)).values())[0])
-        _frame_size = (_frame_size / np.min(_frame_size) * self.config.min_scale).astype(int)
+        _frame_size = (_frame_size / np.min(_frame_size) * self.config.min_scale)
         # Resolve enlarge to allow Random-Crop
         _frame_enlarge = (_frame_size * self.config.crop_scale).astype(int).tolist()
-        _frame_size = _frame_size.tolist()
+        _frame_size = _frame_size.astype(int).tolist()
         # Note that in both Training/Validation, we need to follow the same procedure of scaling
         #    up and then down, as this ensures that the scale is always the same. The difference
         #    is that in Validation/Test, we do a fixed center-crop.

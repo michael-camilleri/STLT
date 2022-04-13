@@ -84,9 +84,7 @@ def inference(args):
         )
     model.train(False)
     logging.info("Starting inference...")
-    evaluator = evaluators_factory[args.dataset_name](
-        num_samples, num_classes, model.logit_names
-    )
+    evaluator = evaluators_factory[args.dataset_name](num_samples, num_classes, model.logit_names)
     # Handle Output Logits
     output = {l: {} for l in args.which_logits} if args.output_path is not None else None
     for batch in tqdm(test_loader):

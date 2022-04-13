@@ -99,12 +99,12 @@ def train(args):
         num_spatial_layers=args.num_spatial_layers,
         num_temporal_layers=args.num_temporal_layers,
         layout_num_frames=args.layout_num_frames,  # Added this to also pass in num_frames.
-        load_backbone_path=args.load_backbone_path,
-        freeze_backbone=args.freeze_backbone,
         resnet_model_path=args.resnet_model_path,
         num_appearance_layers=args.num_appearance_layers,
         num_fusion_layers=args.num_fusion_layers,
         hidden_size=args.hidden_size,
+        load_backbone_path=args.load_backbone_path,
+        freeze_backbone=args.freeze_backbone,
     )
     logging.info("==================================")
     logging.info(f"The model's configuration is:\n{model_config}")
@@ -163,10 +163,6 @@ def train(args):
             logging.info(f"Found new best {evaluator.how_best} on epoch {epoch+1}!")
             logging.info("=================================")
             torch.save(model.state_dict(), args.save_model_path)
-            # print(  ## DEBUG
-            #     'Size of Pos_Embed (before save): ',  ## DEBUG
-            #     model.backbone.appearance_branch.pos_embed.size()  ## DEBUG
-            # )  ## DEBUG
             if args.save_backbone_path:
                 torch.save(model.backbone.state_dict(), args.save_backbone_path)
         for m, scores in metrics.items():
