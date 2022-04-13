@@ -11,8 +11,10 @@
 #     [Appearance] - Number of Appearance Layers (on top of ResNet)
 #     [Fusion] - Number of Fusion Layers
 #     [Resolution] - Image Height Size
-#     [Batch_size] - Due to a weird architectural strategy, it seems that the batch sizes must
-#                    match
+
+#   -- Training/Features --
+#     [Cropping] - Up-scaling factor prior to cropping
+#     [Batch_size] - Due to a weird architectural strategy, it seems that the batch sizes must match
 
 #   -- Paths/Setup --
 #     [Model]    - Model Path to load checkpoint from: note it should NOT contain the .pth extension
@@ -22,7 +24,7 @@
 #                       known that the machine contains the right data splits.
 #
 #  USAGE:
-#     srun --time=1-23:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo2 bash/infer_cacnf.sh 4 8 4 4 128 1.0 16 "Fixed/A[4-8-4-4]_I[128]_L[16_0.000005_2_1]_CAF" Validate Fixed N &> ~/logs/infer_1.log
+#     srun --time=1:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo2 bash/infer_cacnf.sh 4 8 4 4 32 1.0 64 "Fixed/A[4-8-4-4]_I[32_1.0]_L[64_0.00001_1_1]_CAF" Validate Fixed N &> ~/logs/infer_debug_1.log
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
@@ -36,10 +38,9 @@ SPATIAL=${1}
 TEMPORAL=${2}
 APPEARANCE=${3}
 FUSION=${4}
-
 RESOLUTION=${5}
-RESIZE_CROP=${6}
 
+RESIZE_CROP=${6}
 BATCH_SIZE=${7}
 
 MODEL_PATH=${8}
@@ -57,7 +58,6 @@ fi
 # Path Values
 SCRATCH_HOME=/disk/scratch/${USER}
 SCRATCH_DATA=${SCRATCH_HOME}/data/behaviour
-SCRATCH_MODELS=${SCRATCH_HOME}/models/infer_cacnf
 RESULT_PATH="${HOME}/results/CACNF/${MODEL_PATH}"
 
 # ===================
@@ -72,32 +72,28 @@ echo "Libraries from: ${LD_LIBRARY_PATH}"
 export NCCL_DEBUG=INFO
 
 # Make own folder on the node's scratch disk
-mkdir -p ${SCRATCH_HOME}
+mkdir -p "${SCRATCH_HOME}"
 echo ""
 
 # ================================
 # Download Data and Models if necessary
 # ================================
 echo " ===================================="
-echo "Consolidating Data/Models in ${SCRATCH_HOME}"
-mkdir -p ${SCRATCH_DATA}
+echo "Consolidating Data in ${SCRATCH_HOME}"
+mkdir -p "${SCRATCH_DATA}"
 echo "  -> Synchronising Data"
 echo "     .. Schemas .."
 rsync --archive --update --compress --include 'STLT*' --exclude '*' \
-      --info=progress2 ${HOME}/data/behaviour/Common/ ${SCRATCH_DATA}
+      --info=progress2 "${HOME}/data/behaviour/Common/" "${SCRATCH_DATA}"
 echo "     .. Annotations .."
 rsync --archive --update --compress --include '*/' --include 'STLT*' --exclude '*' \
-      --info=progress2 ${HOME}/data/behaviour/Train/${PATH_OFFSET}/ ${SCRATCH_DATA}
+      --info=progress2 "${HOME}/data/behaviour/${PARENT_DIR}/${PATH_OFFSET}/" "${SCRATCH_DATA}"
 if [ "${FORCE_FRAMES}" = "y" ]; then
   echo "     .. Frames .."
-  rsync --archive --update --info=progress2 ${HOME}/data/behaviour/Train/Frames ${SCRATCH_DATA}/
+  rsync --archive --update --info=progress2 "${HOME}/data/behaviour/${PARENT_DIR}/Frames" "${SCRATCH_DATA}/"
 else
   echo "     .. Skipping Frames .."
 fi
-mkdir -p ${SCRATCH_MODELS}
-echo "  -> Synchronising Models"
-rsync --archive --update --compress ${HOME}/models/CACNF/Base/r3d50_KMS_200ep.pth ${SCRATCH_MODELS}/resnet.base.pth
-rsync --archive --update --compress ${HOME}/models/CACNF/Trained/${MODEL_PATH}.pth ${SCRATCH_MODELS}/inference.trained.pth
 echo "   ----- DONE -----"
 echo ""
 
@@ -106,7 +102,7 @@ echo ""
 # ===========
 echo " ===================================="
 echo " Inferring Behaviours for ${DATASET} using model ${MODEL_PATH}"
-mkdir -p ${RESULT_PATH}
+mkdir -p "${RESULT_PATH}"
 
 python src/inference.py \
     --dataset_name something --dataset_type multimodal --model_name cacnf --videos_as_frames \
@@ -114,14 +110,14 @@ python src/inference.py \
     --labels_path "${SCRATCH_DATA}/STLT.Schema.json" \
     --videoid2size_path "${SCRATCH_DATA}/STLT.Sizes.json" \
     --videos_path "${SCRATCH_DATA}/Frames" \
-    --checkpoint_path "${SCRATCH_MODELS}/inference.trained.pth" \
-    --resnet_model_path "${SCRATCH_MODELS}/resnet.base.pth" \
+    --checkpoint_path "${HOME}/models/CACNF/Trained/${MODEL_PATH}.pth" \
+    --resnet_model_path "${HOME}/models/CACNF/Base/r3d50_KMS_200ep.pth" \
     --output_path "${RESULT_PATH}/cacnf_${DATASET}" \
-    --layout_num_frames 25 --appearance_num_frames 25 --resize_height ${RESOLUTION} \
-    --crop_scale ${RESIZE_CROP} --num_spatial_layers ${SPATIAL} --num_temporal_layers ${TEMPORAL} \
-    --num_appearance_layers ${APPEARANCE} --num_fusion_layers ${FUSION} \
+    --layout_num_frames 25 --appearance_num_frames 25 --resize_height "${RESOLUTION}" \
+    --crop_scale "${RESIZE_CROP}" --num_spatial_layers "${SPATIAL}" --num_temporal_layers "${TEMPORAL}" \
+    --num_appearance_layers "${APPEARANCE}" --num_fusion_layers "${FUSION}" \
     --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
-    --which_logits caf --batch_size ${BATCH_SIZE} --num_workers 2
+    --which_logits caf --batch_size "${BATCH_SIZE}" --num_workers 2
 echo "   == Inference Done =="
 echo ""
 

@@ -11,12 +11,13 @@
 #     [Appearance] - Number of Appearance Layers (on top of ResNet)
 #     [Fusion] - Number of Fusion Layers
 #     [Resolution] - Image Height Size
+#   -- Features --
+#     [Resize]   - Random-Resize augmentation (float)
 #   -- Training Parameters --
 #     [Batch]    - Batch-Size
 #     [Rate]     - Learning Rate
 #     [Epochs]   - Maximum Number of Training Epochs
 #     [Warmup]   - Number of Warmup Epochs
-#     [Resize]   - Random-Resize augmentation (float)
 #   -- Paths/Setup --
 #     [Offset]   - Offset from base data location to retrieve the data splits
 #     [Frames]   - Y/N: Indicates if Frames should be rsynced: this is done to save time if it is
@@ -24,7 +25,7 @@
 
 #
 #  USAGE:
-#     srun --time=10-23:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo2 bash/train_cacnf.sh 4 8 4 4 128 16 0.000005 2 1 Fixed N &> ~/logs/train_debug_1.log
+#     srun --time=2:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo2 bash/train_cacnf.sh 4 8 4 4 32 1.0 64 0.00001 1 1 Fixed N &> ~/logs/train_debug_1.log
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
@@ -38,8 +39,8 @@ SPATIAL=${1}
 TEMPORAL=${2}
 APPEARANCE=${3}
 FUSION=${4}
-
 RESOLUTION=${5}
+
 RESIZE_CROP=${6}
 
 BATCH_SIZE=${7}
@@ -56,7 +57,6 @@ OUT_NAME=A[${SPATIAL}-${TEMPORAL}-${APPEARANCE}-${FUSION}]_I[${RESOLUTION}_${RES
 # Path Values
 SCRATCH_HOME=/disk/scratch/${USER}
 SCRATCH_DATA=${SCRATCH_HOME}/data/behaviour
-SCRATCH_MODELS=${SCRATCH_HOME}/models/train_cacnf
 OUTPUT_DIR="${HOME}/models/CACNF/Trained/${PATH_OFFSET}"
 
 # ===================
@@ -71,15 +71,15 @@ echo "Libraries from: ${LD_LIBRARY_PATH}"
 export NCCL_DEBUG=INFO
 
 # Make own folder on the node's scratch disk
-mkdir -p ${SCRATCH_HOME}
+mkdir -p "${SCRATCH_HOME}"
 echo ""
 
 # ================================
 # Download Data and Models if necessary
 # ================================
 echo " ===================================="
-echo "Consolidating Data/Models in ${SCRATCH_HOME}"
-mkdir -p ${SCRATCH_DATA}
+echo "Consolidating Data in ${SCRATCH_HOME}"
+mkdir -p "${SCRATCH_DATA}"
 echo "  -> Synchronising Data"
 echo "     .. Schemas .."
 rsync --archive --update --compress --include 'STLT*' --exclude '*' \
@@ -93,20 +93,13 @@ if [ "${FORCE_FRAMES}" = "y" ]; then
 else
   echo "     .. Skipping Frames .."
 fi
-mkdir -p ${SCRATCH_MODELS}
-echo "  -> Synchronising Models"
-rsync --archive --update --compress ${HOME}/models/CACNF/Base/r3d50_KMS_200ep.pth ${SCRATCH_MODELS}/resnet.base.pth
-echo "   ----- DONE -----"
-#mail -s "Train_CACNF on ${SLURM_JOB_NODELIST}:${OUT_NAME}" ${USER}@sms.ed.ac.uk <<< "Synchronised
-#Data and Models."
-echo ""
 
 # ===========
 # Train Model
 # ===========
 echo " ===================================="
 echo " Training Model (BS=${BATCH_SIZE}, LR=${LR}) on ${PATH_OFFSET} for ${MAX_EPOCHS}(${WARMUP_ITER}) epochs"
-mkdir -p ${OUTPUT_DIR}
+mkdir -p "${OUTPUT_DIR}"
 
 python src/train.py  \
   --dataset_name something --dataset_type multimodal --model_name cacnf --videos_as_frames \
@@ -115,25 +108,20 @@ python src/train.py  \
   --labels_path "${SCRATCH_DATA}/STLT.Schema.json" \
   --videoid2size_path "${SCRATCH_DATA}/STLT.Sizes.json"  \
   --videos_path "${SCRATCH_DATA}/Frames" \
-  --resnet_model_path "${SCRATCH_MODELS}/resnet.base.pth" \
+  --resnet_model_path "${HOME}/models/CACNF/Base/r3d50_KMS_200ep.pth" \
   --save_model_path "${OUTPUT_DIR}/${OUT_NAME}.pth" \
-  --layout_num_frames 25 --appearance_num_frames 25 --resize_height ${RESOLUTION} \
-  --num_spatial_layers ${SPATIAL} --num_temporal_layers ${TEMPORAL} \
-  --num_appearance_layers ${APPEARANCE} --num_fusion_layers ${FUSION} \
+  --layout_num_frames 25 --appearance_num_frames 25 --resize_height "${RESOLUTION}" \
+  --num_spatial_layers "${SPATIAL}" --num_temporal_layers "${TEMPORAL}" \
+  --num_appearance_layers "${APPEARANCE}" --num_fusion_layers "${FUSION}" \
   --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
-  --batch_size ${BATCH_SIZE} --learning_rate ${LR} --weight_decay 1e-5 --clip_val 5.0 \
-  --epochs ${MAX_EPOCHS} --warmup_epochs ${WARMUP_ITER} --crop_scale ${RESIZE_CROP} \
+  --batch_size "${BATCH_SIZE}" --learning_rate "${LR}" --weight_decay 1e-5 --clip_val 5.0 \
+  --epochs "${MAX_EPOCHS}" --warmup_epochs "${WARMUP_ITER}" --crop_scale "${RESIZE_CROP}" \
   --select_best top1 --which_score caf --num_workers 2
 echo "   == Training Done =="
-#mail -s "Train_CACNF on ${SLURM_JOB_NODELIST}:${OUT_NAME}" ${USER}@sms.ed.ac.uk <<< "Model Training
-#Completed."
 echo ""
 
 # ===========
 # Nothing to copy, since I save directly to output disk
 # ===========
-#echo " ===================================="
-#echo " Copying Model Weights (as ${OUT_NAME})"
-#rsync --archive --compress --info=progress2 --remove-source-files "${SCRATCH_MODELS}/${OUT_NAME}.pth" "${OUTPUT_DIR}"
 echo "   ++ ALL DONE! Hurray! ++"
 conda deactivate

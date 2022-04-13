@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
-from torchvision.transforms import Compose, Normalize, RandomCrop, CenterCrop, Resize, ToTensor
+from torchvision.transforms import Compose, Normalize, RandomCrop, CenterCrop, Resize, ToTensor, ColorJitter
 from torchvision.transforms import functional as TF
 from utils.data_utils import IdentityTransform, VideoColorJitter, fix_box, \
     get_test_layout_indices, pad_sequence, sample_appearance_indices, sample_train_layout_indices
@@ -144,7 +144,7 @@ class FrameDataSet(Dataset):
             self.transforms = Compose([
                 Resize(_frame_enlarge),  # First Scale to appropriate scale
                 RandomCrop(_frame_size),  # Now crop (return original if crop_scale == 1)
-                VideoColorJitter(),  # Apply colour jitter
+                ColorJitter(brightness=(0.75, 1.25), contrast=(0.75, 1.25)),
                 ToTensor(),
                 Normalize(mean=self.config.normaliser_means, std=self.config.normaliser_stds),
             ])
