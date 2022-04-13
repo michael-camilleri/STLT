@@ -134,6 +134,7 @@ def train(args):
                 optimizer.zero_grad()
                 # Move tensors to device
                 batch = move_batch_to_device(batch, device)
+                torch.cuda.empty_cache() # Clear any unused cache items
                 # Obtain outputs
                 logits = model(batch)
                 # Measure loss and update weights
@@ -143,8 +144,6 @@ def train(args):
                 optimizer.step()
                 # Update the scheduler
                 scheduler.step()
-                # Clear any unused cache items
-                torch.cuda.empty_cache()
                 # Update progress bar
                 pbar.update(1)
                 pbar.set_postfix({"Loss": loss.item()})
@@ -154,6 +153,7 @@ def train(args):
         with torch.no_grad():
             for batch in tqdm(val_loader):
                 batch = move_batch_to_device(batch, device)
+                torch.cuda.empty_cache()
                 logits = model(batch)
                 evaluator.process(logits, batch["labels"])
         # Saving logic
