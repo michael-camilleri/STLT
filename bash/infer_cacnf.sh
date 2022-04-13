@@ -116,7 +116,7 @@ python src/inference.py \
     --resnet_model_path "${SCRATCH_MODELS}/resnet.base.pth" \
     --output_path "${RESULT_PATH}/cacnf_${DATASET}" \
     --layout_num_frames 25 --appearance_num_frames 25 --resize_height ${RESOLUTION} \
-    --num_spatial_layers ${SPATIAL} --num_temporal_layers ${TEMPORAL} \
+    --crop_scale ${RESIZE_CROP} --num_spatial_layers ${SPATIAL} --num_temporal_layers ${TEMPORAL} \
     --num_appearance_layers ${APPEARANCE} --num_fusion_layers ${FUSION} \
     --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
     --which_logits caf --batch_size ${BATCH_SIZE} --num_workers 2
