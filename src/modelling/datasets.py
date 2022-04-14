@@ -180,10 +180,10 @@ class FrameDataSet(Dataset):
 
         # Load all frames by their indices
         frm_pth = os.path.join(self.config.videos_path, _sample['video'], "img_{:05d}.jpg")
-        raw_video_frames = [Image.open(frm_pth.format(ix+_sample['offset'])) for ix in indices]
+        video_frames = [Image.open(frm_pth.format(ix+_sample['offset'])) for ix in indices]
 
         # Build Batch
-        video_frames = [self.transforms(frame) for frame in raw_video_frames]
+        video_frames = [self.transforms(frame) for frame in video_frames]
         video_frames = torch.stack(video_frames, dim=0).transpose(0, 1)
 
         # Obtain video label
