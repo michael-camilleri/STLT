@@ -192,6 +192,17 @@ class FrameDataSet(Dataset):
         return {"video_id": _sample['id'], "video_frames": video_frames, "labels": action}
 
 
+class BBoxDataSet(Dataset):
+    """
+    TODO This Class extracts only the BBox regions in the frame of interest
+
+    As for the Frame Dataset:
+        1. The Videos Path is the absolute path to the base Frames
+        2. Currently, this supports only all videos of the same size.
+    """
+    pass
+
+
 class AppearanceDataset(Dataset):
     def __init__(self, config: DataConfig, json_file=None):
         self.config = config
