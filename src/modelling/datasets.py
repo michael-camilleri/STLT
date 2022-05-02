@@ -200,7 +200,38 @@ class BBoxDataSet(Dataset):
         1. The Videos Path is the absolute path to the base Frames
         2. Currently, this supports only all videos of the same size.
     """
-    pass
+    def __init__(self, config: DataConfig, json_file=None):
+        self.config = config
+        self.json_file = json_file if json_file is not None else json.load(open(self.config.dataset_path))
+        self.labels = self.config.labels  # As a convenience
+
+        # Resolve input Frame-Size: this is inferred from the first video
+        _frame_size = np.asarray(list(json.load(open(self.config.videoid2size_path)).values())[0])
+        _frame_size = (_frame_size / np.min(_frame_size) * self.config.min_scale)
+        # Resolve enlarge to allow Random-Crop
+        _frame_enlarge = (_frame_size * self.config.crop_scale).astype(int).tolist()
+        _frame_size = _frame_size.astype(int).tolist()
+        # Note that in both Training/Validation, we need to follow the same procedure of scaling
+        #    up and then down, as this ensures that the scale is always the same. The difference
+        #    is that in Validation/Test, we do a fixed center-crop.
+        if self.config.train:
+            self.transforms = Compose([
+                Resize(_frame_enlarge),  # First Scale to appropriate scale
+                RandomCrop(_frame_size),  # Now crop (return original if crop_scale == 1)
+                ColorJitter(brightness=(0.75, 1.25), contrast=(0.75, 1.25)),
+                ToTensor(),
+                Normalize(mean=self.config.normaliser_means, std=self.config.normaliser_stds),
+            ])
+        else:
+            self.transforms = Compose([
+                Resize(_frame_enlarge),  # Again resize
+                CenterCrop(_frame_size), # And Crop
+                ToTensor(),
+                Normalize(mean=self.config.normaliser_means, std=self.config.normaliser_stds),
+            ])
+
+    def __len__(self):
+        return self.config.debug_size if self.config.debug_size is not None else len(self.json_file)
 
 
 class AppearanceDataset(Dataset):

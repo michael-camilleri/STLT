@@ -24,7 +24,7 @@
 #                       known that the machine contains the right data splits.
 #
 #  USAGE:
-#     srun --time=1:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo2 bash/infer_cacnf.sh 4 8 4 4 32 1.0 64 "Fixed/A[4-8-4-4]_I[32_1.0]_L[64_0.00001_1_1]_CAF" Validate Fixed N &> ~/logs/infer_debug_1.log
+#     srun --time=5:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo1 bash/infer_cacnf.sh 4 8 4 4 256 1.0 4 "Fixed/current_best" Train Fixed N &> ~/logs/infer_cacnf_256_5e-7_00_V.log
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
