@@ -128,16 +128,7 @@ class MouseDataset(Dataset):
         self.json_file = json.load(open(self.config.dataset_path))
         self.labels = self.config.labels  # Shallow copy of labels
         self.videoid2size = json.load(open(self.config.videoid2size_path))
-        # Find max num objects
-        max_objects = -1
-        for video in self.json_file:
-            for video_frame in video["frames"]:
-                cur_num_objects = 0
-                for frame_object in video_frame["frame_objects"]:
-                    if frame_object["score"] >= self.config.score_threshold:
-                        cur_num_objects += 1
-                max_objects = max(max_objects, cur_num_objects)
-        self.config.max_num_objects = max_objects
+        self.config.max_num_objects = 3  # Hard-Coded for now (max 3 mice)
         self.identity_flip = np.random.default_rng()
 
     def __len__(self):
@@ -153,9 +144,11 @@ class MouseDataset(Dataset):
             if self.config.train
             else get_test_layout_indices(self.config.layout_num_frames, num_frames)
         )
-        # Define Mapping: note that the randomness is done on a per-BTI basis.
+        # Define Mapping: Note that
+        #   1: Augmentation is only done in the Training set
+        #   2: ID Switching (at random) is done on a consistent per-BTI basis
         _category_map = self.config.categories.copy()
-        if self.config.maintain_identities and (self.identity_flip.binomial(1, 0.5) == 1):
+        if self.config.train and self.config.maintain_identities and (self.identity_flip.binomial(1, 0.5) == 1):
             _category_map['cagemate_1'] = self.config.categories['cagemate_2']
             _category_map['cagemate_2'] = self.config.categories['cagemate_1']
 
@@ -163,9 +156,7 @@ class MouseDataset(Dataset):
             frame = self.json_file[idx]["frames"][index]
             # Prepare CLS object
             frame_types.append(
-                self.config.frame2type["empty"]
-                if len(frame["frame_objects"]) == 0
-                else self.config.frame2type["regular"]
+                self.config.frame2type["empty" if (len(frame["frame_objects"]) == 0) else "regular"]
             )
             frame_boxes = [torch.tensor([0.0, 0.0, 1.0, 1.0])]
             frame_categories = [self.config.categories["cls"]]
@@ -176,9 +167,7 @@ class MouseDataset(Dataset):
                     continue
                 # Prepare box
                 box = [element["x1"], element["y1"], element["x2"], element["y2"]]
-                box = fix_box(
-                    box, (video_size[1].item(), video_size[0].item())
-                )  # Height, Width
+                box = fix_box(box, (video_size[1].item(), video_size[0].item()))  # Height, Width
                 box = torch.tensor(box) / video_size
                 frame_boxes.append(box)
                 # Prepare category
@@ -225,13 +214,7 @@ class MouseDataset(Dataset):
         }
 
     def get_actions(self, sample):
-        if self.config.dataset_name == "something":
-            actions = torch.tensor(int(self.labels[re.sub("[\[\]]", "", sample["template"])]))
-        else:
-            action_list = [int(action[1:]) for action in sample["actions"]]
-            actions = torch.zeros(len(self.labels), dtype=torch.float)
-            actions[action_list] = 1.0
-        return actions
+        return torch.tensor(int(self.labels[re.sub("[\[\]]", "", sample["template"])]))
 
 
 class FrameDataSet(Dataset):
@@ -534,7 +517,6 @@ class MultiModalCollater:
 
 
 collaters_factory = {
-    "frames": AppearanceCollater,
     "appearance": AppearanceCollater,
     "layout": StltCollater,
     "multimodal": MultiModalCollater,

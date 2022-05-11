@@ -29,6 +29,10 @@ def train(args):
     device = get_device(logger=logging.getLogger(__name__))
     # Prepare datasets
     logging.info("Preparing datasets...")
+    if (args.dataset_name == "mouse") and (args.dataset_type == "layout"):
+        ds_type = "mouse"
+    else:
+        ds_type = args.dataset_type
     # Prepare train dataset
     train_data_config = DataConfig(
         dataset_name=args.dataset_name,
@@ -40,13 +44,13 @@ def train(args):
         videos_path=args.videos_path,
         normaliser_mean=args.normaliser_mean,
         normaliser_std=args.normaliser_std,
-        maintain_ids=args.maintain_identities,
+        maintain_identities=args.maintain_identities,
         spatial_size=args.resize_height,
         crop_scale=args.crop_scale,
         debug_size=args.debug_size,
         train=True,
     )
-    train_dataset = datasets_factory[args.dataset_type](train_data_config)
+    train_dataset = datasets_factory[ds_type](train_data_config)
     num_training_samples = len(train_dataset)
     # Prepare validation dataset
     val_data_config = DataConfig(
@@ -59,13 +63,13 @@ def train(args):
         videos_path=args.videos_path,
         normaliser_mean=args.normaliser_mean,
         normaliser_std=args.normaliser_std,
-        maintain_ids=args.maintain_identities,
+        maintain_identities=args.maintain_identities,
         spatial_size=args.resize_height,
         crop_scale=args.crop_scale,
         debug_size=args.debug_size,
         train=False,
     )
-    val_dataset = datasets_factory[args.dataset_type](val_data_config)
+    val_dataset = datasets_factory[ds_type](val_data_config)
     num_validation_samples = len(val_dataset)
     num_classes = len(val_dataset.labels)
     logging.info(f"Training on {num_training_samples}")

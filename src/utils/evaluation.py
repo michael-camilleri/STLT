@@ -142,6 +142,7 @@ def charades_map(submission_array, gt_array):
 
 
 evaluators_factory = {
+    "mouse": EvaluatorSomething,
     "something": EvaluatorSomething,
     "action_genome": EvaluatorActionGenome,
 }

@@ -35,7 +35,7 @@ WARMUP=${7}
 OFFSET=${8}
 
 
-OUT_NAME=A[${SPATIAL}-${TEMPORAL}-${IDENTITY^}]_[${BATCH}_${LR}_${EPOCHS}_${WARMUP}]_STLT
+OUT_NAME=A[${SPATIAL}-${TEMPORAL}-${IDENTITY^}]_D[25_1]_L[${BATCH}_${LR}_${EPOCHS}_${WARMUP}]_STLT
 
 # ===================
 # Environment setup
@@ -84,7 +84,7 @@ else
   IDS=""
 fi
 python src/train.py \
-  --dataset_name mouse --dataset_type mouse --model_name stlt $IDS \
+  --dataset_name mouse --dataset_type layout --model_name stlt $IDS \
   --labels_path "${SCRATCH_DATA}/STLT.Schema.json" \
   --videoid2size_path "${SCRATCH_DATA}/STLT.Sizes.json"  \
   --train_dataset_path "${SCRATCH_DATA}/Train/STLT.Annotations.json"  \

@@ -29,7 +29,7 @@ class DataConfig:
         self.min_scale = kwargs.pop("spatial_size", 112)
         self.crop_scale = kwargs.pop("crop_scale", 1.0)
         self.debug_size = kwargs.pop("debug_size", None)
-        self.maintain_identities = kwargs.pop("maintain_ids", False)
+        self.maintain_identities = kwargs.pop("maintain_identities", False)
 
         _schema = json.load(open(labels_path))
         self.labels = _schema['labels']
