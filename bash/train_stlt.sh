@@ -5,12 +5,14 @@
 #     Trains the STLT Model on own data
 #
 #  Script takes the following parameters:
+#     [Spatial]  - Number of Spatial Layers
+#     [Temporal] - Number of Temporal Layers
+#     [Identity] - If Y, then maintain the identity of the cage-mates (with augmentation)
 #     [Batch]    - Batch-Size
 #     [Rate]     - Learning Rate
 #     [Epochs]   - Maximum Number of Epochs to train for
+#     [Warmup]   - Number of Warmup Epochs
 #     [Offset]   - Offset from base data location to retrieve the data splits
-#     [Spatial]  - Number of Spatial Layers
-#     [Temporal] - Number of Temporal Layers
 #
 #  USAGE:
 #     srun --time=23:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo1 bash/train_stlt.sh 64 0.00005 50 Fixed 2 4 &> ~/logs/train_stlt.00005.Fixed.out
@@ -21,7 +23,19 @@
 #        in my Jupyter notebook.
 
 # Do some Calculations/Preprocessing
-OUT_NAME=S${5}T${6}_${3}_${1}_${2}_W5
+SPATIAL=${1}
+TEMPORAL=${2}
+IDENTITY=${3,,}
+
+BATCH=${4}
+LR=${5}
+EPOCHS=${6}
+WARMUP=${7}
+
+OFFSET=${8}
+
+
+OUT_NAME=A[${SPATIAL}-${TEMPORAL}-${IDENTITY^}]_[${BATCH}_${LR}_${EPOCHS}_${WARMUP}]_STLT
 
 # ===================
 # Environment setup
@@ -51,7 +65,7 @@ echo "     .. Schemas .."
 cp ${HOME}/data/behaviour/Common/STLT* ${SCRATCH_DATA}/
 echo "     .. Annotations .."
 rsync --archive --update --compress --include '*/' --include 'STLT*' --exclude '*' \
-      --info=progress2 ${HOME}/data/behaviour/Train/$4/ ${SCRATCH_DATA}
+      --info=progress2 ${HOME}/data/behaviour/Train/${OFFSET}/ ${SCRATCH_DATA}
 echo "   ----- DONE -----"
 mail -s "Train_STLT on ${SLURM_JOB_NODELIST}:${OUT_NAME}" ${USER}@sms.ed.ac.uk <<< "Synchronised Data and Models."
 echo ""
@@ -60,19 +74,25 @@ echo ""
 # Train Model
 # ===========
 echo " ===================================="
-echo " Training Model (BS=${1}, LR=${2}) on ${4} for ${3} epochs"
+echo " Training Model ${OUT_NAME}"
 SCRATCH_MODELS=${SCRATCH_HOME}/models/stlt
 mkdir -p ${SCRATCH_MODELS}
 
-python src/train_stlt.py  \
+if [ "${IDENTITY}" = "y" ]; then
+  IDS="--maintain_identities"
+else
+  IDS=""
+fi
+python src/train.py \
+  --dataset_name mouse --dataset_type mouse --model_name stlt $IDS \
   --labels_path "${SCRATCH_DATA}/STLT.Schema.json" \
   --videoid2size_path "${SCRATCH_DATA}/STLT.Sizes.json"  \
   --train_dataset_path "${SCRATCH_DATA}/Train/STLT.Annotations.json"  \
   --val_dataset_path "${SCRATCH_DATA}/Validate/STLT.Annotations.json" \
   --save_model_path "${SCRATCH_MODELS}/${OUT_NAME}.pth" \
-  --layout_num_frames 25 --num_spatial_layers ${5} --num_temporal_layers ${6} \
-  --batch_size ${1} --learning_rate ${2} --weight_decay 1e-5 --clip_val 5.0 \
-  --epochs ${3} --warmup_epochs 5 --num_workers 2 --select_best top1
+  --layout_num_frames 25 --num_spatial_layers ${SPATIAL} --num_temporal_layers ${TEMPORAL} \
+  --batch_size ${BATCH} --learning_rate ${LR} --weight_decay 1e-5 --clip_val 5.0 \
+  --epochs ${EPOCHS} --warmup_epochs ${WARMUP} --num_workers 2 --select_best top1
 echo "   == Training Done =="
 mail -s "Train_STLT on ${SLURM_JOB_NODELIST}:${OUT_NAME}" ${USER}@sms.ed.ac.uk <<< "Model Training Completed."
 echo ""

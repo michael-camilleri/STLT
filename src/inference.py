@@ -31,7 +31,7 @@ def inference(args):
         videos_path=args.videos_path,
         normaliser_mean=args.normaliser_mean,
         normaliser_std=args.normaliser_std,
-        videos_as_frames=args.videos_as_frames,
+        maintain_ids=args.maintain_identities,
         spatial_size=args.resize_height,
         crop_scale=args.crop_scale,
         debug_size=args.debug_size,

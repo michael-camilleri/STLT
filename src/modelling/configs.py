@@ -13,9 +13,7 @@ class DataConfig:
         train: bool,
         **kwargs,
     ):
-        assert (
-            dataset_name == "something" or dataset_name == "action_genome"
-        ), f"{dataset_name} does not exist!"
+        assert (dataset_name in ("something", "action_genome", "mouse")), f"{dataset_name} does not exist!"
         self.dataset_name = dataset_name
         self.dataset_path = dataset_path
         self.labels_path = labels_path
@@ -30,12 +28,20 @@ class DataConfig:
         self.normaliser_stds = kwargs.pop("normaliser_std", (0.5, 0.5, 0.5))
         self.min_scale = kwargs.pop("spatial_size", 112)
         self.crop_scale = kwargs.pop("crop_scale", 1.0)
-        self.videos_as_frames = kwargs.pop("videos_as_frames", False)
         self.debug_size = kwargs.pop("debug_size", None)
+        self.maintain_identities = kwargs.pop("maintain_ids", False)
 
         _schema = json.load(open(labels_path))
         self.labels = _schema['labels']
-        if self.dataset_name == "something":
+        if self.dataset_name == "mouse":
+            if self.maintain_identities:
+                print('Maintaining CageMate IDs')
+                self.categories = {'pad': 0, 'mouse': 1, 'cagemate_1': 2, 'cagemate_2': 3, 'cls': 4}
+            else:
+                print('Discarding CageMate IDs')
+                self.categories = {'pad': 0, 'mouse': 1, 'cagemate_1': 2, 'cagemate_2': 2, 'cls': 3}
+            self.frame2type = {"pad": 0, "start": 1, "regular": 2, "empty": 3, "extract": 4}
+        elif self.dataset_name == "something":
             self.categories = {'pad': 0, **_schema['categories'], 'cls': len(_schema['categories']) + 1}
             self.frame2type = {"pad": 0, "start": 1, "regular": 2, "empty": 3, "extract": 4}
         else:

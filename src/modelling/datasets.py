@@ -121,6 +121,119 @@ class StltDataset(Dataset):
         return actions
 
 
+class MouseDataset(Dataset):
+
+    def __init__(self, config: DataConfig):
+        self.config = config
+        self.json_file = json.load(open(self.config.dataset_path))
+        self.labels = self.config.labels  # Shallow copy of labels
+        self.videoid2size = json.load(open(self.config.videoid2size_path))
+        # Find max num objects
+        max_objects = -1
+        for video in self.json_file:
+            for video_frame in video["frames"]:
+                cur_num_objects = 0
+                for frame_object in video_frame["frame_objects"]:
+                    if frame_object["score"] >= self.config.score_threshold:
+                        cur_num_objects += 1
+                max_objects = max(max_objects, cur_num_objects)
+        self.config.max_num_objects = max_objects
+        self.identity_flip = np.random.default_rng()
+
+    def __len__(self):
+        return self.config.debug_size if self.config.debug_size is not None else len(self.json_file)
+
+    def __getitem__(self, idx: int):
+        video_id = self.json_file[idx]["id"]
+        video_size = torch.tensor(self.videoid2size[video_id]).repeat(2)
+        boxes, categories, scores, frame_types = [], [], [], []
+        num_frames = len(self.json_file[idx]["frames"])
+        indices = (
+            sample_train_layout_indices(self.config.layout_num_frames, num_frames)
+            if self.config.train
+            else get_test_layout_indices(self.config.layout_num_frames, num_frames)
+        )
+        # Define Mapping: note that the randomness is done on a per-BTI basis.
+        _category_map = self.config.categories.copy()
+        if self.config.maintain_identities and (self.identity_flip.binomial(1, 0.5) == 1):
+            _category_map['cagemate_1'] = self.config.categories['cagemate_2']
+            _category_map['cagemate_2'] = self.config.categories['cagemate_1']
+
+        for index in indices:
+            frame = self.json_file[idx]["frames"][index]
+            # Prepare CLS object
+            frame_types.append(
+                self.config.frame2type["empty"]
+                if len(frame["frame_objects"]) == 0
+                else self.config.frame2type["regular"]
+            )
+            frame_boxes = [torch.tensor([0.0, 0.0, 1.0, 1.0])]
+            frame_categories = [self.config.categories["cls"]]
+            frame_scores = [1.0]
+            # Iterate over the other objects
+            for element in frame["frame_objects"]:
+                if element["score"] < self.config.score_threshold:
+                    continue
+                # Prepare box
+                box = [element["x1"], element["y1"], element["x2"], element["y2"]]
+                box = fix_box(
+                    box, (video_size[1].item(), video_size[0].item())
+                )  # Height, Width
+                box = torch.tensor(box) / video_size
+                frame_boxes.append(box)
+                # Prepare category
+                frame_categories.append(_category_map[element["category"]])
+                # Prepare scores
+                frame_scores.append(element["score"])
+            # Ensure that everything is of the same length and pad to the max number of objects
+            assert len(frame_boxes) == len(frame_categories)
+            while len(frame_boxes) != self.config.max_num_objects + 1:
+                frame_boxes.append(torch.full((4,), 0.0))
+                frame_categories.append(0)
+                frame_scores.append(0.0)
+            categories.append(torch.tensor(frame_categories))
+            scores.append(torch.tensor(frame_scores))
+            boxes.append(torch.stack(frame_boxes, dim=0))
+        # Prepare extract element
+        # Boxes
+        extract_box = torch.full((self.config.max_num_objects + 1, 4), 0.0)
+        extract_box[0] = torch.tensor([0.0, 0.0, 1.0, 1.0])
+        boxes.append(extract_box)
+        # Categories
+        extract_category = torch.full((self.config.max_num_objects + 1,), 0)
+        extract_category[0] = self.config.categories["cls"]
+        categories.append(extract_category)
+        # Scores
+        extract_score = torch.full((self.config.max_num_objects + 1,), 0.0)
+        extract_score[0] = 1.0
+        scores.append(extract_score)
+        # Length
+        length = torch.tensor(len(categories))
+        # Frame types
+        frame_types.append(self.config.frame2type["extract"])
+        # Get action(s)
+        actions = self.get_actions(self.json_file[idx])
+
+        return {
+            "video_id": video_id,
+            "categories": torch.stack(categories, dim=0),
+            "boxes": torch.stack(boxes, dim=0),
+            "scores": torch.stack(scores, dim=0),
+            "frame_types": torch.tensor(frame_types),
+            "lengths": length,
+            "labels": actions,
+        }
+
+    def get_actions(self, sample):
+        if self.config.dataset_name == "something":
+            actions = torch.tensor(int(self.labels[re.sub("[\[\]]", "", sample["template"])]))
+        else:
+            action_list = [int(action[1:]) for action in sample["actions"]]
+            actions = torch.zeros(len(self.labels), dtype=torch.float)
+            actions[action_list] = 1.0
+        return actions
+
+
 class FrameDataSet(Dataset):
     """
     Note, that for this class, the Videos Path is the absolute path to the base Frames
@@ -308,10 +421,11 @@ class AppearanceDataset(Dataset):
 
 class MultimodalDataset(Dataset):
     def __init__(self, config: DataConfig):
-        self.layout_dataset = StltDataset(config)
-        if config.videos_as_frames:
+        if config.dataset_name == 'mouse':
+            self.layout_dataset = MouseDataset(config)
             self.appearance_dataset = FrameDataSet(config, self.layout_dataset.json_file)
         else:
+            self.layout_dataset = StltDataset(config)
             self.appearance_dataset = AppearanceDataset(config, self.layout_dataset.json_file)
         # Making a shallow copy of the labels for easier interfacing in train.py and inference.py
         self.labels = self.layout_dataset.labels
@@ -331,6 +445,7 @@ datasets_factory = {
     "frames": FrameDataSet,
     "appearance": AppearanceDataset,
     "layout": StltDataset,
+    "mouse": MouseDataset,
     "multimodal": MultimodalDataset,
 }
 

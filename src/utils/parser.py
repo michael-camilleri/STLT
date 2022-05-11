@@ -196,10 +196,10 @@ class Parser:
             help="Default/Base Hidden dimension size"
         )
         self.parser.add_argument(
-            "--videos_as_frames",
+            "--maintain_identities",
             action="store_true",
             default=False,
-            help="Whether to retrieve appearance information as raw frames or hdf5 files"
+            help="Whether to maintain identities in Mouse Dataset"
         )
         self.parser.add_argument(
             "--normaliser_mean",
