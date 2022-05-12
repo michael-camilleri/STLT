@@ -128,7 +128,7 @@ class MouseDataset(Dataset):
         self.json_file = json.load(open(self.config.dataset_path))
         self.labels = self.config.labels  # Shallow copy of labels
         self.videoid2size = json.load(open(self.config.videoid2size_path))
-        self.config.max_num_objects = 3  # Hard-Coded for now (max 3 mice)
+        self.config.max_num_objects = 4 if config.include_hopper else 3  # 3 Mice + Hopper
         self.identity_flip = np.random.default_rng()
 
     def __len__(self):
@@ -155,16 +155,16 @@ class MouseDataset(Dataset):
         for index in indices:
             frame = self.json_file[idx]["frames"][index]
             # Prepare CLS object
-            frame_types.append(
-                self.config.frame2type["empty" if (len(frame["frame_objects"]) == 0) else "regular"]
-            )
             frame_boxes = [torch.tensor([0.0, 0.0, 1.0, 1.0])]
             frame_categories = [self.config.categories["cls"]]
             frame_scores = [1.0]
+            _empty_frame = True
             # Iterate over the other objects
             for element in frame["frame_objects"]:
                 if element["score"] < self.config.score_threshold:
-                    continue
+                    continue  # Skip if score does not match
+                if (element["category"] == "hopper") and not self.config.include_hopper:
+                    continue  # skip if not including hopper
                 # Prepare box
                 box = [element["x1"], element["y1"], element["x2"], element["y2"]]
                 box = fix_box(box, (video_size[1].item(), video_size[0].item()))  # Height, Width
@@ -174,15 +174,17 @@ class MouseDataset(Dataset):
                 frame_categories.append(_category_map[element["category"]])
                 # Prepare scores
                 frame_scores.append(element["score"])
+                _empty_frame = False
             # Ensure that everything is of the same length and pad to the max number of objects
             assert len(frame_boxes) == len(frame_categories)
             while len(frame_boxes) != self.config.max_num_objects + 1:
                 frame_boxes.append(torch.full((4,), 0.0))
-                frame_categories.append(0)
+                frame_categories.append(_category_map['pad'])
                 frame_scores.append(0.0)
             categories.append(torch.tensor(frame_categories))
             scores.append(torch.tensor(frame_scores))
             boxes.append(torch.stack(frame_boxes, dim=0))
+            frame_types.append(self.config.frame2type["empty" if _empty_frame else "regular"])
         # Prepare extract element
         # Boxes
         extract_box = torch.full((self.config.max_num_objects + 1, 4), 0.0)

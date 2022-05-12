@@ -32,6 +32,7 @@ def inference(args):
         normaliser_mean=args.normaliser_mean,
         normaliser_std=args.normaliser_std,
         maintain_ids=args.maintain_identities,
+        include_hopper=args.include_hopper,
         spatial_size=args.resize_height,
         crop_scale=args.crop_scale,
         debug_size=args.debug_size,
@@ -56,7 +57,7 @@ def inference(args):
         num_classes=num_classes,
         appearance_num_frames=args.appearance_num_frames,
         spatial_size=args.resize_height,
-        unique_categories=len(data_config.categories), # len(data_config.category2id),
+        unique_categories=data_config.unique_categories, # len(data_config.category2id),
         num_spatial_layers=args.num_spatial_layers,
         num_temporal_layers=args.num_temporal_layers,
         layout_num_frames=args.layout_num_frames,  # Added this to also pass in num_frames.

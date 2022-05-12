@@ -8,6 +8,7 @@
 #     [Spatial]  - Number of Spatial Layers
 #     [Temporal] - Number of Temporal Layers
 #     [Identity] - If Y, then maintain the identity of the cage-mates (with augmentation)
+#     [Hopper] - If Y, then include Hopper in the set of objects
 #     [Batch]    - Batch-Size
 #     [Rate]     - Learning Rate
 #     [Epochs]   - Maximum Number of Epochs to train for
@@ -26,16 +27,17 @@
 SPATIAL=${1}
 TEMPORAL=${2}
 IDENTITY=${3,,}
+HOPPER=${4,,}
 
-BATCH=${4}
-LR=${5}
-EPOCHS=${6}
-WARMUP=${7}
+BATCH=${5}
+LR=${6}
+EPOCHS=${7}
+WARMUP=${8}
 
-OFFSET=${8}
+OFFSET=${9}
 
 
-OUT_NAME=A[${SPATIAL}-${TEMPORAL}-${IDENTITY^}]_D[25_1]_L[${BATCH}_${LR}_${EPOCHS}_${WARMUP}]_STLT
+OUT_NAME=A[${SPATIAL}-${TEMPORAL}-${IDENTITY^}-${HOPPER^}]_D[25_1]_L[${BATCH}_${LR}_${EPOCHS}_${WARMUP}]_STLT
 
 # ===================
 # Environment setup
@@ -83,8 +85,13 @@ if [ "${IDENTITY}" = "y" ]; then
 else
   IDS=""
 fi
+if [ "${HOPPER}" = "y" ]; then
+  HOP="--include_hopper"
+else
+  HOP=""
+fi
 python src/train.py \
-  --dataset_name mouse --dataset_type layout --model_name stlt $IDS \
+  --dataset_name mouse --dataset_type layout --model_name stlt $IDS $HOP \
   --labels_path "${SCRATCH_DATA}/STLT.Schema.json" \
   --videoid2size_path "${SCRATCH_DATA}/STLT.Sizes.json"  \
   --train_dataset_path "${SCRATCH_DATA}/Train/STLT.Annotations.json"  \

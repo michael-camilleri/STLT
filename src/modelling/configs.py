@@ -30,16 +30,24 @@ class DataConfig:
         self.crop_scale = kwargs.pop("crop_scale", 1.0)
         self.debug_size = kwargs.pop("debug_size", None)
         self.maintain_identities = kwargs.pop("maintain_identities", False)
+        self.include_hopper = kwargs.pop("include_hopper", False)
 
         _schema = json.load(open(labels_path))
         self.labels = _schema['labels']
         if self.dataset_name == "mouse":
+            self.categories = {'pad': 0, 'mouse': 1, 'cagemate_1': 2}
+            _next_id = 3
             if self.maintain_identities:
-                print('Maintaining CageMate IDs')
-                self.categories = {'pad': 0, 'mouse': 1, 'cagemate_1': 2, 'cagemate_2': 3, 'cls': 4}
+                print('Including IDs')
+                self.categories['cagemate_2'] = _next_id
+                _next_id += 1
             else:
-                print('Discarding CageMate IDs')
-                self.categories = {'pad': 0, 'mouse': 1, 'cagemate_1': 2, 'cagemate_2': 2, 'cls': 3}
+                self.categories['cagemate_2'] = _next_id - 1
+            if self.include_hopper:
+                print('Including Hopper')
+                self.categories['hopper'] = _next_id
+                _next_id += 1
+            self.categories['cls'] = _next_id
             self.frame2type = {"pad": 0, "start": 1, "regular": 2, "empty": 3, "extract": 4}
         elif self.dataset_name == "something":
             self.categories = {'pad': 0, **_schema['categories'], 'cls': len(_schema['categories']) + 1}
@@ -47,6 +55,7 @@ class DataConfig:
         else:
             self.categories = {'pad': 0, 'cls': 1, **_schema['categories']}
             self.frame2type = {"pad": 0, "regular": 1, "extract": 2, "empty": 3}
+        self.unique_categories = len(set(self.categories.values()))
 
 
 class GeneralModelConfig:

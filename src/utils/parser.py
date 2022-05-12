@@ -202,6 +202,12 @@ class Parser:
             help="Whether to maintain identities in Mouse Dataset"
         )
         self.parser.add_argument(
+            "--include_hopper",
+            action="store_true",
+            default=False,
+            help="Whether to include the Hopper location as a cage structure"
+        )
+        self.parser.add_argument(
             "--normaliser_mean",
             type=float,
             nargs=3,
