@@ -21,6 +21,10 @@ def inference(args):
     # Check for CUDA
     device = get_device(logger=logging.getLogger(__name__))
     logging.info("Preparing dataset...")
+    if (args.dataset_name == "mouse") and (args.dataset_type == "layout"):
+        ds_type = "mouse"
+    else:
+        ds_type = args.dataset_type
     data_config = DataConfig(
         dataset_name=args.dataset_name,
         dataset_path=args.test_dataset_path,
@@ -31,14 +35,14 @@ def inference(args):
         videos_path=args.videos_path,
         normaliser_mean=args.normaliser_mean,
         normaliser_std=args.normaliser_std,
-        maintain_ids=args.maintain_identities,
+        maintain_identities=args.maintain_identities,
         include_hopper=args.include_hopper,
         spatial_size=args.resize_height,
         crop_scale=args.crop_scale,
         debug_size=args.debug_size,
         train=False,
     )
-    test_dataset = datasets_factory[args.dataset_type](data_config)
+    test_dataset = datasets_factory[ds_type](data_config)
     num_samples = len(test_dataset)
     logging.info(f"Inference on {num_samples}")
     collater = collaters_factory[args.dataset_type](data_config)
