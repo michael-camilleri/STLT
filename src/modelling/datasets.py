@@ -122,6 +122,14 @@ class StltDataset(Dataset):
 
 
 class MouseDataset(Dataset):
+    """
+    Assumptions:
+     1. We have three mice (max) in the cage: no test is done for this
+     2. Each BTI has a FIXED and ODD number of frames (a check for odd is done on the first frame)
+     3. The number of frames to be sampled as well as the stride together do not exceed the
+        available number of frames.
+
+    """
 
     def __init__(self, config: DataConfig):
         self.config = config
@@ -130,6 +138,17 @@ class MouseDataset(Dataset):
         self.videoid2size = json.load(open(self.config.videoid2size_path))
         self.config.max_num_objects = 4 if config.include_hopper else 3  # 3 Mice + Hopper
         self.identity_flip = np.random.default_rng()
+        # Check that the DataSet Sampling is correct
+        fpb = len(self.json_file[0]['frames'])
+        if fpb % 2 != 1:
+            raise ValueError('Number of Frames per BTI must be ODD!')
+        center_frame = fpb // 2
+        sample_range = self.config.layout_samples * self.config.layout_stride
+        if (center_frame + sample_range) >= fpb:
+            raise ValueError('Number of sampled frames must be within number of frames.')
+        self.indices = np.arange(
+            center_frame - sample_range, center_frame + sample_range + 1, self.config.layout_stride
+        )
 
     def __len__(self):
         return self.config.debug_size if self.config.debug_size is not None else len(self.json_file)
@@ -138,12 +157,7 @@ class MouseDataset(Dataset):
         video_id = self.json_file[idx]["id"]
         video_size = torch.tensor(self.videoid2size[video_id]).repeat(2)
         boxes, categories, scores, frame_types = [], [], [], []
-        num_frames = len(self.json_file[idx]["frames"])
-        indices = (
-            sample_train_layout_indices(self.config.layout_num_frames, num_frames)
-            if self.config.train
-            else get_test_layout_indices(self.config.layout_num_frames, num_frames)
-        )
+
         # Define Mapping: Note that
         #   1: Augmentation is only done in the Training set
         #   2: ID Switching (at random) is done on a consistent per-BTI basis
@@ -152,7 +166,7 @@ class MouseDataset(Dataset):
             _category_map['cagemate_1'] = self.config.categories['cagemate_2']
             _category_map['cagemate_2'] = self.config.categories['cagemate_1']
 
-        for index in indices:
+        for index in self.indices:
             frame = self.json_file[idx]["frames"][index]
             # Prepare CLS object
             frame_boxes = [torch.tensor([0.0, 0.0, 1.0, 1.0])]

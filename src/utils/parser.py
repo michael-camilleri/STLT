@@ -59,10 +59,18 @@ class Parser:
             help="Path to the videos saved as HDF5.",
         )
         self.parser.add_argument(
-            "--layout_num_frames",
+            "--layout_samples",
             type=int,
-            default=16,
-            help="The number of layout frames to sample per video.",
+            default=12,
+            help="The number of layout frames to sample on either side of the centre-frame: the "
+                 "total number of frames will thus be 1 + 2N.",
+        )
+        self.parser.add_argument(
+            "--layout_stride",
+            type=int,
+            default=1,
+            help="The stride to use when sampling frames on either side of the centre-frame. A "
+                 "stride of 1 indicates sampling every frame."
         )
         self.parser.add_argument(
             "--appearance_num_frames",

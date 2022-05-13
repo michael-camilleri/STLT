@@ -20,7 +20,9 @@ class DataConfig:
         self.videoid2size_path = videoid2size_path
         self.videos_path = videos_path
         self.train = train
-        self.layout_num_frames = kwargs.pop("layout_num_frames", 16)
+        self.layout_samples = kwargs.pop("layout_samples", 12)
+        self.layout_num_frames = self.layout_samples * 2 + 1
+        self.layout_stride = kwargs.pop("layout_stride", 1)
         self.max_num_objects = kwargs.pop("max_num_objects", 7)
         self.score_threshold = kwargs.pop("score_threshold", 0.5)
         self.appearance_num_frames = kwargs.pop("appearance_num_frames", 32)

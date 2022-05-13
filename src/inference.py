@@ -30,7 +30,8 @@ def inference(args):
         dataset_path=args.test_dataset_path,
         labels_path=args.labels_path,
         videoid2size_path=args.videoid2size_path,
-        layout_num_frames=args.layout_num_frames,
+        layout_samples=args.layout_samples,
+        layout_stride=args.layout_stride,
         appearance_num_frames=args.appearance_num_frames,
         videos_path=args.videos_path,
         normaliser_mean=args.normaliser_mean,
@@ -64,7 +65,7 @@ def inference(args):
         unique_categories=data_config.unique_categories, # len(data_config.category2id),
         num_spatial_layers=args.num_spatial_layers,
         num_temporal_layers=args.num_temporal_layers,
-        layout_num_frames=args.layout_num_frames,  # Added this to also pass in num_frames.
+        layout_num_frames=data_config.layout_num_frames,  # Added this to also pass in num_frames.
         resnet_model_path=args.resnet_model_path,
         num_appearance_layers=args.num_appearance_layers,
         num_fusion_layers=args.num_fusion_layers,
