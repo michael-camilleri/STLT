@@ -8,7 +8,9 @@
 #     [Spatial]  - Number of Spatial Layers
 #     [Temporal] - Number of Temporal Layers
 #     [Identity] - If Y, then maintain the identity of the cage-mates (with augmentation)
-#     [Hopper] - If Y, then include Hopper in the set of objects
+#     [Hopper]   - If Y, then include Hopper in the set of objects
+#     [Samples]  - Number of frames to get
+#     [Stride]   - Chosen Stride
 #     [Batch]    - Batch-Size
 #     [Rate]     - Learning Rate
 #     [Epochs]   - Maximum Number of Epochs to train for
@@ -28,16 +30,18 @@ SPATIAL=${1}
 TEMPORAL=${2}
 IDENTITY=${3,,}
 HOPPER=${4,,}
+SAMPLES=${5}
+STRIDE=${6}
 
-BATCH=${5}
-LR=${6}
-EPOCHS=${7}
-WARMUP=${8}
+BATCH=${7}
+LR=${8}
+EPOCHS=${9}
+WARMUP=${10}
 
-OFFSET=${9}
+OFFSET=${11}
 
-
-OUT_NAME=A[${SPATIAL}-${TEMPORAL}-${IDENTITY^}-${HOPPER^}]_D[25_1]_L[${BATCH}_${LR}_${EPOCHS}_${WARMUP}]_STLT
+# Define Output Name
+OUT_NAME=A[${SPATIAL}-${TEMPORAL}-${IDENTITY^}-${HOPPER^}]_D[${SAMPLES}_${STRIDE}]_L[${BATCH}_${LR}_${EPOCHS}_${WARMUP}]_STLT
 
 # ===================
 # Environment setup
@@ -97,7 +101,8 @@ python src/train.py \
   --train_dataset_path "${SCRATCH_DATA}/Train/STLT.Annotations.json"  \
   --val_dataset_path "${SCRATCH_DATA}/Validate/STLT.Annotations.json" \
   --save_model_path "${SCRATCH_MODELS}/${OUT_NAME}.pth" \
-  --layout_num_frames 25 --num_spatial_layers ${SPATIAL} --num_temporal_layers ${TEMPORAL} \
+  --layout_samples ${SAMPLES} --layout_stride ${STRIDE} \
+  --num_spatial_layers ${SPATIAL} --num_temporal_layers ${TEMPORAL} \
   --batch_size ${BATCH} --learning_rate ${LR} --weight_decay 1e-5 --clip_val 5.0 \
   --epochs ${EPOCHS} --warmup_epochs ${WARMUP} --num_workers 2 --select_best top1
 echo "   == Training Done =="
