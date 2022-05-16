@@ -47,12 +47,6 @@ class Parser:
             help="Path to the labels.",
         )
         self.parser.add_argument(
-            "--videoid2size_path",
-            type=str,
-            default="data/videoid2size.json",
-            help="Path to the videoid2size json file.",
-        )
-        self.parser.add_argument(
             "--videos_path",
             type=str,
             default=None,
@@ -271,6 +265,12 @@ class Parser:
             type=int,
             default=None,
             help="For Debugging, size of datasets to operate on"
+        )
+        self.parser.add_argument(
+            "--video_size",
+            type=list,
+            default=[1280, 720],
+            help="Video-Size (HxW)"
         )
 
     def parse_args(self):

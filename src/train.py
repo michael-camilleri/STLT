@@ -34,11 +34,12 @@ def train(args):
     else:
         ds_type = args.dataset_type
     # Prepare train dataset
+    logging.info("  -> Training DataSet Config")
     train_data_config = DataConfig(
         dataset_name=args.dataset_name,
         dataset_path=args.train_dataset_path,
         labels_path=args.labels_path,
-        videoid2size_path=args.videoid2size_path,
+        video_size=args.video_size,
         layout_samples=args.layout_samples,
         layout_stride=args.layout_stride,
         appearance_num_frames=args.appearance_num_frames,
@@ -52,14 +53,17 @@ def train(args):
         debug_size=args.debug_size,
         train=True,
     )
+    logging.info("  -> Loading Training DataSet")
     train_dataset = datasets_factory[ds_type](train_data_config)
     num_training_samples = len(train_dataset)
+    logging.info(f"     (Training on {num_training_samples})")
     # Prepare validation dataset
+    logging.info("  -> Validation DataSet Config")
     val_data_config = DataConfig(
         dataset_name=args.dataset_name,
         dataset_path=args.val_dataset_path,
         labels_path=args.labels_path,
-        videoid2size_path=args.videoid2size_path,
+        video_size=args.video_size,
         layout_samples=args.layout_samples,
         layout_stride=args.layout_stride,
         appearance_num_frames=args.appearance_num_frames,
@@ -73,11 +77,11 @@ def train(args):
         debug_size=args.debug_size,
         train=False,
     )
+    logging.info("  -> Loading Validation DataSet")
     val_dataset = datasets_factory[ds_type](val_data_config)
     num_validation_samples = len(val_dataset)
     num_classes = len(val_dataset.labels)
-    logging.info(f"Training on {num_training_samples}")
-    logging.info(f"Validating on {num_validation_samples}")
+    logging.info(f"     (Validating on {num_validation_samples})")
     # Prepare collaters
     train_collater = collaters_factory[args.dataset_type](train_data_config)
     val_collater = collaters_factory[args.dataset_type](val_data_config)

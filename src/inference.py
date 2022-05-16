@@ -29,7 +29,7 @@ def inference(args):
         dataset_name=args.dataset_name,
         dataset_path=args.test_dataset_path,
         labels_path=args.labels_path,
-        videoid2size_path=args.videoid2size_path,
+        video_size=args.video_size,
         layout_samples=args.layout_samples,
         layout_stride=args.layout_stride,
         appearance_num_frames=args.appearance_num_frames,

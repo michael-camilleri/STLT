@@ -97,11 +97,10 @@ fi
 python src/train.py \
   --dataset_name mouse --dataset_type layout --model_name stlt $IDS $HOP \
   --labels_path "${SCRATCH_DATA}/STLT.Schema.json" \
-  --videoid2size_path "${SCRATCH_DATA}/STLT.Sizes.json"  \
   --train_dataset_path "${SCRATCH_DATA}/Train/STLT.Annotations.json"  \
   --val_dataset_path "${SCRATCH_DATA}/Validate/STLT.Annotations.json" \
   --save_model_path "${SCRATCH_MODELS}/${OUT_NAME}.pth" \
-  --layout_samples ${SAMPLES} --layout_stride ${STRIDE} \
+  --layout_samples ${SAMPLES} --layout_stride ${STRIDE} --video_size 1280 720 \
   --num_spatial_layers ${SPATIAL} --num_temporal_layers ${TEMPORAL} \
   --batch_size ${BATCH} --learning_rate ${LR} --weight_decay 1e-5 --clip_val 5.0 \
   --epochs ${EPOCHS} --warmup_epochs ${WARMUP} --num_workers 2 --select_best top1

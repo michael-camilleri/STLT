@@ -8,7 +8,6 @@ class DataConfig:
         dataset_name: str,
         dataset_path: str,
         labels_path: str,
-        videoid2size_path: str,
         videos_path: str,
         train: bool,
         **kwargs,
@@ -17,7 +16,6 @@ class DataConfig:
         self.dataset_name = dataset_name
         self.dataset_path = dataset_path
         self.labels_path = labels_path
-        self.videoid2size_path = videoid2size_path
         self.videos_path = videos_path
         self.train = train
         self.layout_samples = kwargs.pop("layout_samples", 12)
@@ -33,6 +31,7 @@ class DataConfig:
         self.debug_size = kwargs.pop("debug_size", None)
         self.maintain_identities = kwargs.pop("maintain_identities", False)
         self.include_hopper = kwargs.pop("include_hopper", False)
+        self.video_size = [float(vs) for vs in kwargs.pop("video_size", ["1280", "720"])]
 
         _schema = json.load(open(labels_path))
         self.labels = _schema['labels']

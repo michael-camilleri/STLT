@@ -135,7 +135,7 @@ class MouseDataset(Dataset):
         self.config = config
         self.json_file = json.load(open(self.config.dataset_path))
         self.labels = self.config.labels  # Shallow copy of labels
-        self.videoid2size = json.load(open(self.config.videoid2size_path))
+        self.video_size = torch.tensor(self.config.video_size).repeat(2)
         self.config.max_num_objects = 4 if config.include_hopper else 3  # 3 Mice + Hopper
         self.identity_flip = np.random.default_rng()
         # Check that the DataSet Sampling is correct
@@ -155,7 +155,6 @@ class MouseDataset(Dataset):
 
     def __getitem__(self, idx: int):
         video_id = self.json_file[idx]["id"]
-        video_size = torch.tensor(self.videoid2size[video_id]).repeat(2)
         boxes, categories, scores, frame_types = [], [], [], []
 
         # Define Mapping: Note that
@@ -181,8 +180,8 @@ class MouseDataset(Dataset):
                     continue  # skip if not including hopper
                 # Prepare box
                 box = [element["x1"], element["y1"], element["x2"], element["y2"]]
-                box = fix_box(box, (video_size[1].item(), video_size[0].item()))  # Height, Width
-                box = torch.tensor(box) / video_size
+                box = fix_box(box, (self.video_size[1].item(), self.video_size[0].item()))  # H / W
+                box = torch.tensor(box) / self.video_size
                 frame_boxes.append(box)
                 # Prepare category
                 frame_categories.append(_category_map[element["category"]])
@@ -244,7 +243,7 @@ class FrameDataSet(Dataset):
         self.json_file = json_file if json_file is not None else json.load(open(self.config.dataset_path))
         self.labels = self.config.labels
         # Resolve output Frame-Size: this is inferred from the first video and then scaled
-        _frame_size = np.asarray(list(json.load(open(self.config.videoid2size_path)).values())[0])
+        _frame_size = np.asarray(self.config.video_size)
         _frame_size = (_frame_size / np.min(_frame_size) * self.config.min_scale)
         # Resolve enlarge to allow Random-Crop
         _frame_enlarge = (_frame_size * self.config.crop_scale).astype(int).tolist()
@@ -312,38 +311,7 @@ class BBoxDataSet(Dataset):
         1. The Videos Path is the absolute path to the base Frames
         2. Currently, this supports only all videos of the same size.
     """
-    def __init__(self, config: DataConfig, json_file=None):
-        self.config = config
-        self.json_file = json_file if json_file is not None else json.load(open(self.config.dataset_path))
-        self.labels = self.config.labels  # As a convenience
-
-        # Resolve input Frame-Size: this is inferred from the first video
-        _frame_size = np.asarray(list(json.load(open(self.config.videoid2size_path)).values())[0])
-        _frame_size = (_frame_size / np.min(_frame_size) * self.config.min_scale)
-        # Resolve enlarge to allow Random-Crop
-        _frame_enlarge = (_frame_size * self.config.crop_scale).astype(int).tolist()
-        _frame_size = _frame_size.astype(int).tolist()
-        # Note that in both Training/Validation, we need to follow the same procedure of scaling
-        #    up and then down, as this ensures that the scale is always the same. The difference
-        #    is that in Validation/Test, we do a fixed center-crop.
-        if self.config.train:
-            self.transforms = Compose([
-                Resize(_frame_enlarge),  # First Scale to appropriate scale
-                RandomCrop(_frame_size),  # Now crop (return original if crop_scale == 1)
-                ColorJitter(brightness=(0.75, 1.25), contrast=(0.75, 1.25)),
-                ToTensor(),
-                Normalize(mean=self.config.normaliser_means, std=self.config.normaliser_stds),
-            ])
-        else:
-            self.transforms = Compose([
-                Resize(_frame_enlarge),  # Again resize
-                CenterCrop(_frame_size), # And Crop
-                ToTensor(),
-                Normalize(mean=self.config.normaliser_means, std=self.config.normaliser_stds),
-            ])
-
-    def __len__(self):
-        return self.config.debug_size if self.config.debug_size is not None else len(self.json_file)
+    pass
 
 
 class AppearanceDataset(Dataset):
