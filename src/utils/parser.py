@@ -268,7 +268,8 @@ class Parser:
         )
         self.parser.add_argument(
             "--video_size",
-            type=list,
+            type=int,
+            nargs=2,
             default=[1280, 720],
             help="Video-Size (HxW)"
         )
