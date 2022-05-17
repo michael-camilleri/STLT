@@ -18,8 +18,9 @@
 #     [Offset]   - Offset from base data location to retrieve the data splits
 #
 #  USAGE:
-#     srun --time=23:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo1 bash/train_stlt.sh 64 0.00005 50 Fixed 2 4 &> ~/logs/train_stlt.00005.Fixed.out
+#     srun --time=23:00:00 --gres=gpu:1 --mem=30G --partition=apollo --nodelist=apollo1 bash/train_stlt.sh 4 8 Y Y 12 2 64 0.000001 60 2 Fixed &> ~logfile.log
 #     * N.B.: The above should be run from the root STLT directory.
+#     * N.B.: It may be that this requires specifying extra memory with the --mem=30G option
 
 #  Data Structures
 #    Data is expected to be under ${HOME}/data/behaviour/ which follows the definitions laid out
@@ -40,8 +41,11 @@ WARMUP=${10}
 
 OFFSET=${11}
 
-# Define Output Name
+# Define Output Name and associated directories
 OUT_NAME=A[${SPATIAL}-${TEMPORAL}-${IDENTITY^}-${HOPPER^}]_D[${SAMPLES}_${STRIDE}]_L[${BATCH}_${LR}_${EPOCHS}_${WARMUP}]_STLT
+SCRATCH_HOME=/disk/scratch/${USER}
+SCRATCH_DATA=${SCRATCH_HOME}/data/behaviour/
+SCRATCH_MODELS=${SCRATCH_HOME}/models/stlt/${OUT_NAME}
 
 # ===================
 # Environment setup
@@ -55,7 +59,6 @@ echo "Libraries from: ${LD_LIBRARY_PATH}"
 export NCCL_DEBUG=INFO
 
 # Make your own folder on the node's scratch disk
-SCRATCH_HOME=/disk/scratch/${USER}
 mkdir -p ${SCRATCH_HOME}
 echo ""
 
@@ -64,7 +67,6 @@ echo ""
 # ================================
 echo " ===================================="
 echo "Consolidating Data in ${SCRATCH_HOME}"
-SCRATCH_DATA=${SCRATCH_HOME}/data/behaviour/
 mkdir -p ${SCRATCH_DATA}
 echo "  -> Synchronising Data"
 echo "     .. Schemas .."
@@ -81,7 +83,6 @@ echo ""
 # ===========
 echo " ===================================="
 echo " Training Model ${OUT_NAME}"
-SCRATCH_MODELS=${SCRATCH_HOME}/models/stlt
 mkdir -p ${SCRATCH_MODELS}
 
 if [ "${IDENTITY}" = "y" ]; then

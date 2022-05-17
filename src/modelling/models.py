@@ -185,9 +185,7 @@ class Stlt(nn.Module):
         # [Num. frames, Batch size, Hidden size]
         stlt_output = self.backbone(batch)
         # [Batch size, Hidden size]
-        batches = torch.arange(batch["categories"].size()[0]).to(
-            batch["categories"].device
-        )
+        batches = torch.arange(batch["categories"].size()[0]).to(batch["categories"].device)
         stlt_output = stlt_output[batch["lengths"] - 1, batches, :]
         logits = (self.prediction_head(stlt_output),)
 
@@ -275,9 +273,7 @@ class TransformerResnet(nn.Module):
         features = features.flatten(2)
         # [Seq. len, Batch size, Hidden size]
         features = features.permute(2, 0, 1)
-        cls_tokens = self.cls_token.expand(
-            -1, B, -1
-        )  # stole cls_tokens impl from Ross Wightman thanks
+        cls_tokens = self.cls_token.expand(-1, B, -1)  # stole cls_tokens impl from Ross Wightman thanks
         features = torch.cat((cls_tokens, features), dim=0)
         # print(f'Features: {features.shape}')
         # print(f'Pos_Embed: {self.pos_embed.shape}')
@@ -324,9 +320,7 @@ class LateConcatenationFusion(nn.Module):
         # [Num. Lay. frames, Batch size, Hidden size]
         layout_output = self.layout_branch(batch)
         # [Batch size, Hidden size]
-        batches = torch.arange(batch["categories"].size()[0]).to(
-            batch["categories"].device
-        )
+        batches = torch.arange(batch["categories"].size()[0]).to(batch["categories"].device)
         layout_output = layout_output[batch["lengths"] - 1, batches, :]
         # [Num. App. frames, Batch size, Hidden size]
         appearance_output = self.appearance_branch.forward_features(batch)
