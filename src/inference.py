@@ -25,6 +25,7 @@ def inference(args):
         ds_type = "mouse"
     else:
         ds_type = args.dataset_type
+    logging.info("  -> DataSet Config")
     data_config = DataConfig(
         dataset_name=args.dataset_name,
         dataset_path=args.test_dataset_path,
@@ -43,9 +44,10 @@ def inference(args):
         debug_size=args.debug_size,
         train=False,
     )
+    logging.info("  -> Loading DataSet")
     test_dataset = datasets_factory[ds_type](data_config)
     num_samples = len(test_dataset)
-    logging.info(f"Inference on {num_samples}")
+    logging.info(f"     (Inference on {num_samples})")
     collater = collaters_factory[args.dataset_type](data_config)
     # Prepare loader
     test_loader = DataLoader(
