@@ -10,8 +10,10 @@
 #     [Temporal] - Number of Temporal Layers
 #     [Appearance] - Number of Appearance Layers (on top of ResNet)
 #     [Fusion] - Number of Fusion Layers
+#   -- Data Format Parameters --
+#     [Layout Samples] - Number of samples in layout stream
+#     [Layout Stride] - Stride for layout sampling
 #     [Resolution] - Image Height Size
-#   -- Features --
 #     [Resize]   - Random-Resize augmentation (float)
 #   -- Training Parameters --
 #     [Batch]    - Batch-Size
@@ -25,7 +27,7 @@
 
 #
 #  USAGE:
-#     srun --time=2:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo2 bash/train_cacnf.sh 4 8 4 4 32 1.0 64 0.00001 1 1 Fixed N &> ~/logs/train_debug_1.log
+#     srun --time=4-23:00:00 --gres=gpu:1 --mem=40G --partition=apollo --nodelist=apollo1 bash/train_cacnf.sh 4 8 4 4 36 3 256 1 4 0.0000001 50 2 Fixed N &> ~/logs/train_cacnf_36+3_1e-7.log
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
@@ -39,25 +41,30 @@ SPATIAL=${1}
 TEMPORAL=${2}
 APPEARANCE=${3}
 FUSION=${4}
-RESOLUTION=${5}
 
-RESIZE_CROP=${6}
+LAYOUT_SAMPLES=${5}
+LAYOUT_STRIDE=${6}
+RESOLUTION=${7}
+RESIZE_CROP=${8}
 
-BATCH_SIZE=${7}
-LR=${8}
-MAX_EPOCHS=${9}
-WARMUP_ITER=${10}
+BATCH_SIZE=${9}
+LR=${10}
+MAX_EPOCHS=${11}
+WARMUP_ITER=${12}
 
-PATH_OFFSET=${11}
-FORCE_FRAMES=${12,,}
+PATH_OFFSET=${13}
+FORCE_FRAMES=${14,,}
 
 # Derivative Values
-OUT_NAME=A[${SPATIAL}-${TEMPORAL}-${APPEARANCE}-${FUSION}]_I[${RESOLUTION}_${RESIZE_CROP}]_L[${BATCH_SIZE}_${LR}_${MAX_EPOCHS}_${WARMUP_ITER}]_CAF
+ARCHITECTURE="A[${SPATIAL}-${TEMPORAL}-${APPEARANCE}-${FUSION}-Y-Y]"
+DATA_FORMAT="D[${LAYOUT_SAMPLES}_${LAYOUT_STRIDE}-25-${RESOLUTION}_${RESIZE_CROP}]"
+LEARNING="L[${BATCH_SIZE}_${LR}_${MAX_EPOCHS}_${WARMUP_ITER}]"
+OUT_NAME=${ARCHITECTURE}_${DATA_FORMAT}_${LEARNING}_CAF
 
 # Path Values
 SCRATCH_HOME=/disk/scratch/${USER}
 SCRATCH_DATA=${SCRATCH_HOME}/data/behaviour
-OUTPUT_DIR="${HOME}/models/CACNF/Trained/${PATH_OFFSET}"
+OUTPUT_DIR="${HOME}/models/CACNF/Trained/${PATH_OFFSET}/"
 
 # ===================
 # Environment setup
@@ -98,24 +105,25 @@ fi
 # Train Model
 # ===========
 echo " ===================================="
-echo " Training Model (BS=${BATCH_SIZE}, LR=${LR}) on ${PATH_OFFSET} for ${MAX_EPOCHS}(${WARMUP_ITER}) epochs"
+echo " Training Model (${OUT_NAME})"
 mkdir -p "${OUTPUT_DIR}"
 
 python src/train.py  \
-  --dataset_name something --dataset_type multimodal --model_name cacnf --videos_as_frames \
+  --dataset_name something --dataset_type multimodal --model_name cacnf \
+  --maintain_identities --include_hopper --video_size 1280 720 \
   --train_dataset_path "${SCRATCH_DATA}/Train/STLT.Annotations.json" \
   --val_dataset_path "${SCRATCH_DATA}/Validate/STLT.Annotations.json" \
   --labels_path "${SCRATCH_DATA}/STLT.Schema.json" \
-  --videoid2size_path "${SCRATCH_DATA}/STLT.Sizes.json"  \
   --videos_path "${SCRATCH_DATA}/Frames" \
   --resnet_model_path "${HOME}/models/CACNF/Base/r3d50_KMS_200ep.pth" \
   --save_model_path "${OUTPUT_DIR}/${OUT_NAME}.pth" \
-  --layout_num_frames 25 --appearance_num_frames 25 --resize_height "${RESOLUTION}" \
+  --layout_samples "${LAYOUT_SAMPLES}" --layout_stride "${LAYOUT_STRIDE}" \
+  --appearance_num_frames 25 --resize_height "${RESOLUTION}" --crop_scale "${RESIZE_CROP}" \
   --num_spatial_layers "${SPATIAL}" --num_temporal_layers "${TEMPORAL}" \
   --num_appearance_layers "${APPEARANCE}" --num_fusion_layers "${FUSION}" \
   --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
   --batch_size "${BATCH_SIZE}" --learning_rate "${LR}" --weight_decay 1e-5 --clip_val 5.0 \
-  --epochs "${MAX_EPOCHS}" --warmup_epochs "${WARMUP_ITER}" --crop_scale "${RESIZE_CROP}" \
+  --epochs "${MAX_EPOCHS}" --warmup_epochs "${WARMUP_ITER}"  \
   --select_best top1 --which_score caf --num_workers 2
 echo "   == Training Done =="
 echo ""

@@ -54,3 +54,67 @@ python src/train.py \
     --epochs 1 --warmup_epochs 1 --select_best top1 \
     --num_workers 0
 
+# Train CACNF Debug
+--dataset_name
+mouse
+--dataset_type
+multimodal
+--model_name
+cacnf
+--maintain_identities
+--include_hopper
+--video_size
+1280
+720
+--labels_path
+"/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Sample_0.05/Common/STLT.Schema.json"
+--train_dataset_path
+"/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Sample_0.05/Train/Fixed/Train/STLT.Annotations.json"
+--val_dataset_path
+"/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Sample_0.05/Train/Fixed/Validate/STLT.Annotations.json"
+--videos_path
+"/media/veracrypt4/Q1/Snippets/Curated/Behaviour/Train/Frames"
+--save_model_path
+"${HOME}/Documents/DataSynced/PhD Project/Data/MRC Harwell/Scratch/scratch.pth"
+--resnet_model_path
+"/media/veracrypt5/MRC_Data/Models/CACNF/Base/r3d50_KMS_200ep.pth"
+--layout_samples
+12
+--layout_stride
+2
+--appearance_num_frames
+25
+--resize_height
+128
+--crop_scale
+1.0
+--num_spatial_layers
+1
+--num_temporal_layers
+2
+--num_appearance_layers
+2
+--num_fusion_layers
+1
+--hidden_size
+12
+--normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571
+--batch_size
+1
+--learning_rate
+1e-5
+--weight_decay
+1e-5
+--clip_val
+5.0
+--epochs
+2
+--warmup_epochs
+1
+--num_workers
+0
+--which_score
+caf
+--select_best
+top1
+

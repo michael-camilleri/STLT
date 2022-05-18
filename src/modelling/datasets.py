@@ -234,14 +234,16 @@ class MouseDataset(Dataset):
 
 class FrameDataSet(Dataset):
     """
-    Note, that for this class, the Videos Path is the absolute path to the base Frames
-
-    Note also, that currently, this supports only all videos of the same size.
+    Note, that for this class:
+     * the Videos Path is the absolute path to the base Frames
+     * currently this supports only all videos of the same size
+     * it is hardcoded that the frames are in the range 0 to appearance_num_frames.
     """
     def __init__(self, config: DataConfig, json_file=None):
         self.config = config
         self.json_file = json_file if json_file is not None else json.load(open(self.config.dataset_path))
         self.labels = self.config.labels
+        self.indices = np.arange(self.config.appearance_num_frames)
         # Resolve output Frame-Size: this is inferred from the first video and then scaled
         _frame_size = np.asarray(self.config.video_size)
         _frame_size = (_frame_size / np.min(_frame_size) * self.config.min_scale)
@@ -270,28 +272,13 @@ class FrameDataSet(Dataset):
     def __len__(self):
         return self.config.debug_size if self.config.debug_size is not None else len(self.json_file)
 
-    def __sample_frames(self, sample):
-        """
-        Wrapper for Sampling in my specific use-case
-
-        :param sample: Sample to which this pertains
-        :return:
-        """
-        _num_frames = len(sample['frames'])
-        _num_sampled = self.config.appearance_num_frames
-        if _num_frames < _num_sampled:
-            return np.arange(_num_frames)
-        else:
-            return np.sort(np.random.choice(np.arange(_num_frames), _num_sampled, replace=False))
-
     def __getitem__(self, idx: int):
         # Prepare MetaData
         _sample = self.json_file[idx]
-        indices = self.__sample_frames(_sample)
 
         # Load all frames by their indices
         frm_pth = os.path.join(self.config.videos_path, _sample['video'], "img_{:05d}.jpg")
-        video_frames = [Image.open(frm_pth.format(ix+_sample['offset'])) for ix in indices]
+        video_frames = [Image.open(frm_pth.format(ix+_sample['offset'])) for ix in self.indices]
 
         # Build Batch
         video_frames = [self.transforms(frame) for frame in video_frames]
