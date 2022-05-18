@@ -109,7 +109,7 @@ echo " Training Model (${OUT_NAME})"
 mkdir -p "${OUTPUT_DIR}"
 
 python src/train.py  \
-  --dataset_name something --dataset_type multimodal --model_name cacnf \
+  --dataset_name mouse --dataset_type multimodal --model_name cacnf \
   --maintain_identities --include_hopper --video_size 1280 720 \
   --train_dataset_path "${SCRATCH_DATA}/Train/STLT.Annotations.json" \
   --val_dataset_path "${SCRATCH_DATA}/Validate/STLT.Annotations.json" \
