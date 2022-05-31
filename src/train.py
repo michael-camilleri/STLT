@@ -1,5 +1,5 @@
 import logging
-import os
+import os.path as op
 
 import torch
 from torch import optim
@@ -18,7 +18,7 @@ from utils.train_inference_utils import add_weight_decay, get_device, \
 def train(args):
     if args.log_filepath:
         # Set up logging
-        if os.path.exists(args.log_filepath):
+        if op.exists(args.log_filepath):
             raise ValueError(f"There is a log at {args.log_filepath}!")
         logging.basicConfig(
             level=logging.INFO, filename=args.log_filepath, filemode="w"
@@ -181,6 +181,10 @@ def train(args):
             torch.save(model.state_dict(), args.save_model_path)
             if args.save_backbone_path:
                 torch.save(model.backbone.state_dict(), args.save_backbone_path)
+            with open(op.join(op.dirname(args.save_model_path), 'best_model.txt'), 'w') as f:
+                f.write(f'Epoch: {epoch+1}\n')
+                f.write(f'Top1: {metrics["top1"]["caf"]}')
+
         for m, scores in metrics.items():
             for l, s in scores.items():
                 logging.info(f"{m}/{l}: {round(s * 100, 2)}")

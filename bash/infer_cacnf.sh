@@ -20,7 +20,8 @@
 #     [Model]    - Model Path to load checkpoint from: note it should NOT contain the .pth extension
 #     [DataSet]  - Which Dataset to infer for
 #     [Offset]   - Offset from base data location to retrieve the data splits
-#     [Frames]   - Y/N: Indicates if Frames should be rsynced: this is done to save time if it is
+#     [Frames]   - Name of specific Frames Directory
+#     [Force]    - Y/N: Indicates if Frames should be rsynced: this is done to save time if it is
 #                       known that the machine contains the right data splits.
 #
 #  USAGE:
@@ -46,7 +47,8 @@ BATCH_SIZE=${7}
 MODEL_PATH=${8}
 DATASET=${9}
 PATH_OFFSET=${10}
-FORCE_FRAMES=${11,,}
+FRAMES_DIR=${11}
+FORCE_FRAMES=${12,,}
 
 # Derivative Values
 if [ "${DATASET,,}" = "test" ]; then
@@ -64,6 +66,7 @@ RESULT_PATH="${HOME}/results/CACNF/${MODEL_PATH}"
 # Environment setup
 # ===================
 echo "Setting up Conda enviroment on ${SLURM_JOB_NODELIST}"
+echo "Using Model ${MODEL_PATH} on ${DATASET} (from ${PATH_OFFSET} split) with ${FRAMES_DIR} Frames."
 set -e # Make script bail out after first error
 source activate py3stlt   # Activate Conda Environment
 echo "Libraries from: ${LD_LIBRARY_PATH}"
@@ -90,7 +93,8 @@ rsync --archive --update --compress --include '*/' --include 'STLT*' --exclude '
       --info=progress2 "${HOME}/data/behaviour/${PARENT_DIR}/${PATH_OFFSET}/" "${SCRATCH_DATA}"
 if [ "${FORCE_FRAMES}" = "y" ]; then
   echo "     .. Frames .."
-  rsync --archive --update --info=progress2 "${HOME}/data/behaviour/${PARENT_DIR}/Frames" "${SCRATCH_DATA}/"
+  rsync --archive --update --info=progress2 "${HOME}/data/behaviour/${PARENT_DIR}/${FRAMES_DIR}" \
+        "${SCRATCH_DATA}/${FRAMES_DIR}"
 else
   echo "     .. Skipping Frames .."
 fi
@@ -109,7 +113,7 @@ python src/inference.py \
     --test_dataset_path "${SCRATCH_DATA}/${DATASET}/STLT.Annotations.json" \
     --labels_path "${SCRATCH_DATA}/STLT.Schema.json" \
     --videoid2size_path "${SCRATCH_DATA}/STLT.Sizes.json" \
-    --videos_path "${SCRATCH_DATA}/Frames" \
+    --videos_path "${SCRATCH_DATA}/${FRAMES_DIR}" \
     --checkpoint_path "${HOME}/models/CACNF/Trained/${MODEL_PATH}.pth" \
     --resnet_model_path "${HOME}/models/CACNF/Base/r3d50_KMS_200ep.pth" \
     --output_path "${RESULT_PATH}/cacnf_${DATASET}" \

@@ -22,12 +22,13 @@
 #     [Warmup]   - Number of Warmup Epochs
 #   -- Paths/Setup --
 #     [Offset]   - Offset from base data location to retrieve the data splits
-#     [Frames]   - Y/N: Indicates if Frames should be rsynced: this is done to save time if it is
+#     [Frames]   - The Directory to use for Frames
+#     [Force]    - Y/N: Indicates if Frames should be rsynced: this is done to save time if it is
 #                       known that the machine contains the right data splits.
 
 #
 #  USAGE:
-#     srun --time=4-23:00:00 --gres=gpu:1 --mem=40G --partition=apollo --nodelist=apollo1 bash/train_cacnf.sh 4 8 4 4 36 3 256 1 4 0.0000001 50 2 Fixed N &> ~/logs/train_cacnf_36+3_1e-7.log
+#     srun --time=4-23:00:00 --gres=gpu:1 --mem=40G --partition=apollo --nodelist=apollo1 bash/train_cacnf.sh 4 8 4 4 36 3 256 1 4 0.0000001 50 2 Fixed Frames_DCE N &> ~/logs/train_cacnf_36+3_1e-7.log
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
@@ -53,7 +54,8 @@ MAX_EPOCHS=${11}
 WARMUP_ITER=${12}
 
 PATH_OFFSET=${13}
-FORCE_FRAMES=${14,,}
+FRAMES_DIR=${14}
+FORCE_FRAMES=${15,,}
 
 # Derivative Values
 ARCHITECTURE="A[${SPATIAL}-${TEMPORAL}-${APPEARANCE}-${FUSION}-Y-Y]"
@@ -70,6 +72,7 @@ OUTPUT_DIR="${HOME}/models/CACNF/Trained/${PATH_OFFSET}/"
 # Environment setup
 # ===================
 echo "Setting up Conda enviroment on ${SLURM_JOB_NODELIST}: Config=${OUT_NAME}"
+echo "Using configuration: ${OUT_NAME}, with ${FRAMES_DIR} images and ${PATH_OFFSET} data split."
 set -e # Make script bail out after first error
 source activate py3stlt   # Activate Conda Environment
 echo "Libraries from: ${LD_LIBRARY_PATH}"
@@ -96,7 +99,9 @@ rsync --archive --update --compress --include '*/' --include 'STLT*' --exclude '
       --info=progress2 ${HOME}/data/behaviour/Train/${PATH_OFFSET}/ ${SCRATCH_DATA}
 if [ "${FORCE_FRAMES}" = "y" ]; then
   echo "     .. Frames .."
-  rsync --archive --update --info=progress2 ${HOME}/data/behaviour/Train/Frames ${SCRATCH_DATA}/
+  mkdir -p "${SCRATCH_DATA}/${FRAMES_DIR}"
+  rsync --archive --update --info=progress2 "${HOME}/data/behaviour/Train/${FRAMES_DIR}/" \
+        "${SCRATCH_DATA}/${FRAMES_DIR}/"
 else
   echo "     .. Skipping Frames .."
 fi
@@ -114,7 +119,7 @@ python src/train.py  \
   --train_dataset_path "${SCRATCH_DATA}/Train/STLT.Annotations.json" \
   --val_dataset_path "${SCRATCH_DATA}/Validate/STLT.Annotations.json" \
   --labels_path "${SCRATCH_DATA}/STLT.Schema.json" \
-  --videos_path "${SCRATCH_DATA}/Frames" \
+  --videos_path "${SCRATCH_DATA}/${FRAMES_DIR}" \
   --resnet_model_path "${HOME}/models/CACNF/Base/r3d50_KMS_200ep.pth" \
   --save_model_path "${OUTPUT_DIR}/${OUT_NAME}.pth" \
   --layout_samples "${LAYOUT_SAMPLES}" --layout_stride "${LAYOUT_STRIDE}" \
