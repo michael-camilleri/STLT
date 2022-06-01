@@ -100,8 +100,8 @@ rsync --archive --update --compress --include '*/' --include 'STLT*' --exclude '
 if [ "${FORCE_FRAMES}" = "y" ]; then
   echo "     .. Frames .."
   mkdir -p "${SCRATCH_DATA}/${FRAMES_DIR}"
-  rsync --archive --update --info=progress2 "${HOME}/data/behaviour/Train/${FRAMES_DIR}/" \
-        "${SCRATCH_DATA}/${FRAMES_DIR}/"
+  rsync --archive --update --info=progress2 "${HOME}/data/behaviour/Train/${FRAMES_DIR}" \
+        "${SCRATCH_DATA}/"
 else
   echo "     .. Skipping Frames .."
 fi

@@ -219,34 +219,39 @@ class Resnet3D(nn.Module):
         return self.resnet(batch["video_frames"])
 
     def forward(self, batch):
-        features = self.forward_features(batch)
-        features = self.avgpool(features).flatten(1)
-        logits = (self.classifier(features),)
-
-        return {k: v for k, v in zip(self.logit_names, logits)}
+        raise NotImplementedError
+        # features = self.forward_features(batch)
+        # features = self.avgpool(features).flatten(1)
+        # logits = (self.classifier(features),)
+        #
+        # return {k: v for k, v in zip(self.logit_names, logits)}
 
 
 class TransformerResnet(nn.Module):
 
-    @staticmethod
-    def __emb_sz(config):
-        """
-        This is currently a hard-coded function to compute the size of the pos_embed parameter
-
-        TODO: It should at some point be more flexible in terms of the video size: currently it
-        assumes the video size is 1280x720.
-
-        :param height: The desired height of the output frame after resizing
-        :return: An integer representing the size of the pos_embed vector.
-        """
-        _frames = 1 if config.appearance_num_frames < 16 else 2
-        _height = np.ceil(config.spatial_size / 32)
-        _width = np.ceil(1280/720 * config.spatial_size / 32)
-        return int(_frames * _width * _height + 1)
+    # @staticmethod
+    # def __emb_sz(config):
+    #     """
+    #     This is currently a hard-coded function to compute the size of the pos_embed parameter
+    #
+    #     assumes the video size is 1280x720.
+    #
+    #     :param height: The desired height of the output frame after resizing
+    #     :return: An integer representing the size of the pos_embed vector.
+    #     """
+    #     # _frames = 1 if config.appearance_num_frames < 16 else 2
+    #     # _height = np.ceil(config.spatial_size / 32)
+    #     # _width = np.ceil(1280/720 * config.spatial_size / 32)
+    #     # return int(_frames * _width * _height + 1)
+    #     # return config.appearance_num_frames + 1
+    #     return 33
 
     def __init__(self, config: AppearanceModelConfig):
         super(TransformerResnet, self).__init__()
         self.resnet = Resnet3D(config)
+        # Compute Embedding Size
+        _emb_sz = int(np.ceil(config.appearance_num_frames / 16))
+        self.pooler = nn.AdaptiveAvgPool3d((_emb_sz, 4, 4))
         self.projector = nn.Conv3d(
             in_channels=2048, out_channels=config.hidden_size, kernel_size=(1, 1, 1)
         )
@@ -259,14 +264,14 @@ class TransformerResnet(nn.Module):
             encoder_layer=encoder_layer, num_layers=config.num_appearance_layers
         )
         self.cls_token = nn.Parameter(torch.zeros(1, 1, config.hidden_size))
-        self.pos_embed = nn.Parameter(torch.zeros(self.__emb_sz(config), 1, config.hidden_size))
+        self.pos_embed = nn.Parameter(torch.zeros(_emb_sz * 16 + 1, 1, config.hidden_size))
         # print('Size of Pos_Embed (within Init): ', self.pos_embed.size()) ## DEBUG
         self.classifier = nn.Linear(config.hidden_size, config.num_classes)
 
     def forward_features(self, batch):
         # We need the batch size for the CLS token
         B = batch["video_frames"].shape[0]
-        features = self.resnet.forward_features(batch)
+        features = self.pooler(self.resnet.forward_features(batch))
         # [Batch size, Hidden size, Temporal., Spatial., Spatial.]
         features = self.projector(features)
         # [Batch size, Hidden size, Seq. len]
@@ -275,8 +280,6 @@ class TransformerResnet(nn.Module):
         features = features.permute(2, 0, 1)
         cls_tokens = self.cls_token.expand(-1, B, -1)  # stole cls_tokens impl from Ross Wightman thanks
         features = torch.cat((cls_tokens, features), dim=0)
-        # print(f'Features: {features.shape}')
-        # print(f'Pos_Embed: {self.pos_embed.shape}')
         features = features + self.pos_embed
         # [Seq. len, Batch size, Hidden size]
         features = self.transformer(src=features)
