@@ -33,7 +33,8 @@ def inference(args):
         video_size=args.video_size,
         layout_samples=args.layout_samples,
         layout_stride=args.layout_stride,
-        appearance_num_frames=args.appearance_num_frames,
+        appearance_samples=args.appearance_samples,
+        appearance_stride=args.appearance_stride,
         videos_path=args.videos_path,
         normaliser_mean=args.normaliser_mean,
         normaliser_std=args.normaliser_std,
@@ -62,12 +63,12 @@ def inference(args):
     num_classes = len(test_dataset.labels)
     model_config = model_configs_factory[args.model_name](
         num_classes=num_classes,
-        appearance_num_frames=args.appearance_num_frames,
+        layout_num_frames=data_config.layout_num_frames,
+        appearance_num_frames=data_config.appearance_num_frames,
         spatial_size=args.resize_height,
         unique_categories=data_config.unique_categories, # len(data_config.category2id),
         num_spatial_layers=args.num_spatial_layers,
         num_temporal_layers=args.num_temporal_layers,
-        layout_num_frames=data_config.layout_num_frames,  # Added this to also pass in num_frames.
         resnet_model_path=args.resnet_model_path,
         num_appearance_layers=args.num_appearance_layers,
         num_fusion_layers=args.num_fusion_layers,

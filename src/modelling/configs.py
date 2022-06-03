@@ -21,9 +21,11 @@ class DataConfig:
         self.layout_samples = kwargs.pop("layout_samples", 12)
         self.layout_num_frames = self.layout_samples * 2 + 1
         self.layout_stride = kwargs.pop("layout_stride", 1)
+        self.appearance_samples = kwargs.pop("appearance_samples", 12)
+        self.appearance_num_frames = self.appearance_samples * 2 + 1
+        self.appearance_stride = kwargs.pop("appearance_stride", 1)
         self.max_num_objects = kwargs.pop("max_num_objects", 7)
         self.score_threshold = kwargs.pop("score_threshold", 0.5)
-        self.appearance_num_frames = kwargs.pop("appearance_num_frames", 32)
         self.normaliser_means = kwargs.pop("normaliser_mean", (0.5, 0.5, 0.5))
         self.normaliser_stds = kwargs.pop("normaliser_std", (0.5, 0.5, 0.5))
         self.min_scale = kwargs.pop("spatial_size", 112)

@@ -237,13 +237,22 @@ class FrameDataSet(Dataset):
     Note, that for this class:
      * the Videos Path is the absolute path to the base Frames
      * currently this supports only all videos of the same size
-     * it is hardcoded that the frames are in the range 0 to appearance_num_frames.
     """
     def __init__(self, config: DataConfig, json_file=None):
         self.config = config
         self.json_file = json_file if json_file is not None else json.load(open(self.config.dataset_path))
         self.labels = self.config.labels
-        self.indices = np.arange(self.config.appearance_num_frames)
+        # Compute Indices
+        fpb = len(self.json_file[0]['frames'])
+        if fpb % 2 != 1:
+            raise ValueError('Number of Frames per BTI must be ODD!')
+        center_frame = fpb // 2
+        sample_range = self.config.appearance_samples * self.config.appearance_stride
+        if (center_frame + sample_range) >= fpb:
+            raise ValueError('Number of sampled frames must be within number of frames.')
+        self.indices = np.arange(
+            center_frame - sample_range, center_frame + sample_range + 1, self.config.appearance_stride
+        )
         # Resolve output Frame-Size: this is inferred from the first video and then scaled
         _frame_size = np.asarray(self.config.video_size)
         _frame_size = (_frame_size / np.min(_frame_size) * self.config.min_scale)

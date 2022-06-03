@@ -67,10 +67,18 @@ class Parser:
                  "stride of 1 indicates sampling every frame."
         )
         self.parser.add_argument(
-            "--appearance_num_frames",
+            "--appearance_samples",
             type=int,
-            default=32,
-            help="The number of appearance frames to sample per video.",
+            default=12,
+            help="The number of appearance frames to sample on either side of the centre-frame: "
+                 "the total number of frames will thus be 1 + 2N."
+        )
+        self.parser.add_argument(
+            "--appearance_stride",
+            type=int,
+            default=1,
+            help="The stride to use when sampling frames on either side of the centre-frame. A "
+                 "stride of 1 indicates sampling every frame."
         )
         self.parser.add_argument(
             "--score_threshold",

@@ -229,23 +229,6 @@ class Resnet3D(nn.Module):
 
 class TransformerResnet(nn.Module):
 
-    # @staticmethod
-    # def __emb_sz(config):
-    #     """
-    #     This is currently a hard-coded function to compute the size of the pos_embed parameter
-    #
-    #     assumes the video size is 1280x720.
-    #
-    #     :param height: The desired height of the output frame after resizing
-    #     :return: An integer representing the size of the pos_embed vector.
-    #     """
-    #     # _frames = 1 if config.appearance_num_frames < 16 else 2
-    #     # _height = np.ceil(config.spatial_size / 32)
-    #     # _width = np.ceil(1280/720 * config.spatial_size / 32)
-    #     # return int(_frames * _width * _height + 1)
-    #     # return config.appearance_num_frames + 1
-    #     return 33
-
     def __init__(self, config: AppearanceModelConfig):
         super(TransformerResnet, self).__init__()
         self.resnet = Resnet3D(config)
