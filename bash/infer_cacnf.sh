@@ -1,6 +1,6 @@
 #!/bin/bash
 #  Author: Michael Camilleri
-#
+#  **OBSOLETE** Deprecated
 #  Scope:
 #     Infers behaviours according to the CACNF Model
 #

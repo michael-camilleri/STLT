@@ -13,6 +13,8 @@
 #   -- Data Format Parameters --
 #     [Layout Samples] - Number of samples in layout stream
 #     [Layout Stride] - Stride for layout sampling
+#     [App Samples] - Number of samples in appearance stream
+#     [App Stride] - Stride for appearance sampling
 #     [Resolution] - Image Height Size
 #     [Resize]   - Random-Resize augmentation (float)
 #   -- Training Parameters --
@@ -28,7 +30,7 @@
 
 #
 #  USAGE:
-#     srun --time=4-23:00:00 --gres=gpu:1 --mem=40G --partition=apollo --nodelist=apollo1 bash/train_cacnf.sh 4 8 4 4 36 3 256 1 4 0.0000001 50 2 Fixed Frames_DCE N &> ~/logs/train_cacnf_36+3_1e-7.log
+#     srun --time=12-23:00:00 --gres=gpu:1 --mem=40G --partition=apollo --nodelist=apollo1 bash/train_cacnf.sh 4 8 4 4 36 3 12 1 256 1 4 0.0000001 50 2 Fixed Frames_DCE N &> ~/logs/train_cacnf_36+3_1e-7.log
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
@@ -45,21 +47,23 @@ FUSION=${4}
 
 LAYOUT_SAMPLES=${5}
 LAYOUT_STRIDE=${6}
-RESOLUTION=${7}
-RESIZE_CROP=${8}
+APP_SAMPLES=${7}
+APP_STRIDE=${8}
+RESOLUTION=${9}
+RESIZE_CROP=${10}
 
-BATCH_SIZE=${9}
-LR=${10}
-MAX_EPOCHS=${11}
-WARMUP_ITER=${12}
+BATCH_SIZE=${11}
+LR=${12}
+MAX_EPOCHS=${13}
+WARMUP_ITER=${14}
 
-PATH_OFFSET=${13}
-FRAMES_DIR=${14}
-FORCE_FRAMES=${15,,}
+PATH_OFFSET=${15}
+FRAMES_DIR=${16}
+FORCE_FRAMES=${17,,}
 
 # Derivative Values
 ARCHITECTURE="A[${SPATIAL}-${TEMPORAL}-${APPEARANCE}-${FUSION}-Y-Y]"
-DATA_FORMAT="D[${LAYOUT_SAMPLES}_${LAYOUT_STRIDE}-25-${RESOLUTION}_${RESIZE_CROP}]"
+DATA_FORMAT="D[${LAYOUT_SAMPLES}_${LAYOUT_STRIDE}-${APP_SAMPLES}-${APP_STRIDE}-${RESOLUTION}_${RESIZE_CROP}]"
 LEARNING="L[${BATCH_SIZE}_${LR}_${MAX_EPOCHS}_${WARMUP_ITER}]"
 OUT_NAME=${ARCHITECTURE}_${DATA_FORMAT}_${LEARNING}_CAF
 
@@ -123,7 +127,8 @@ python src/train.py  \
   --resnet_model_path "${HOME}/models/CACNF/Base/r3d50_KMS_200ep.pth" \
   --save_model_path "${OUTPUT_DIR}/${OUT_NAME}.pth" \
   --layout_samples "${LAYOUT_SAMPLES}" --layout_stride "${LAYOUT_STRIDE}" \
-  --appearance_num_frames 25 --resize_height "${RESOLUTION}" --crop_scale "${RESIZE_CROP}" \
+  --appearance_samples "${APP_SAMPLES}" --appearance_stride "${APP_STRIDE}" \
+  --resize_height "${RESOLUTION}" --crop_scale "${RESIZE_CROP}" \
   --num_spatial_layers "${SPATIAL}" --num_temporal_layers "${TEMPORAL}" \
   --num_appearance_layers "${APPEARANCE}" --num_fusion_layers "${FUSION}" \
   --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
