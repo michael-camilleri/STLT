@@ -142,32 +142,29 @@ def train(args):
     for epoch in range(args.epochs):
         # Training loop
         model.train(True)
-        with tqdm(total=len(train_loader)) as pbar:
-            for batch in train_loader:
-                # Remove past gradients
-                optimizer.zero_grad()
-                # Move tensors to device
-                batch = move_batch_to_device(batch, device)
-                # Obtain outputs
-                logits = model(batch)
-                # Measure loss and update weights
-                loss = criterion(logits, batch["labels"])
-                loss.backward()
-                torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_val)
-                optimizer.step()
-                # Update the scheduler
-                scheduler.step()
-                # Clean up
-                del batch, logits
-                torch.cuda.empty_cache() # Clear any unused cache items
-                # Update progress bar
-                pbar.update(1)
-                pbar.set_postfix({"Loss": loss.item()})
+        for batch in tqdm(train_loader, miniters=50, maxinterval=60):
+            # Remove past gradients
+            optimizer.zero_grad()
+            # Move tensors to device
+            batch = move_batch_to_device(batch, device)
+            # Obtain outputs
+            logits = model(batch)
+            # Measure loss and update weights
+            loss = criterion(logits, batch["labels"])
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_val)
+            optimizer.step()
+            # Update the scheduler
+            scheduler.step()
+            # Clean up
+            del batch, logits
+            torch.cuda.empty_cache() # Clear any unused cache items
+
         # Validation loop
         model.train(False)
         evaluator.reset()
         with torch.no_grad():
-            for batch in tqdm(val_loader):
+            for batch in tqdm(val_loader, miniters=50, maxinterval=60):
                 batch = move_batch_to_device(batch, device)
                 logits = model(batch)
                 evaluator.process(logits, batch["labels"])
