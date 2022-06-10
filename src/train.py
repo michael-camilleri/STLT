@@ -159,7 +159,6 @@ def train(args):
             # Clean up
             del batch, logits
             torch.cuda.empty_cache() # Clear any unused cache items
-
         # Validation loop
         model.train(False)
         evaluator.reset()
