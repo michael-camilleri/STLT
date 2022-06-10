@@ -27,6 +27,7 @@
 #     [Frames]   - The Directory to use for Frames
 #     [Force]    - Y/N: Indicates if Frames should be rsynced: this is done to save time if it is
 #                       known that the machine contains the right data splits.
+#     [Environ]  - Python Environment to use
 
 #
 #  USAGE:
@@ -60,6 +61,7 @@ WARMUP_ITER=${14}
 PATH_OFFSET=${15}
 FRAMES_DIR=${16}
 FORCE_FRAMES=${17,,}
+ENVIRONMENT=${18}
 
 # Derivative Values
 ARCHITECTURE="A[${SPATIAL}-${TEMPORAL}-${APPEARANCE}-${FUSION}-Y-Y]"
@@ -78,7 +80,7 @@ OUTPUT_DIR="${HOME}/models/CACNF/Trained/${PATH_OFFSET}/"
 echo "Setting up Conda enviroment on ${SLURM_JOB_NODELIST}: Config=${OUT_NAME}"
 echo "Using configuration: ${OUT_NAME}, with ${FRAMES_DIR} images and ${PATH_OFFSET} data split."
 set -e # Make script bail out after first error
-source activate py3stlt   # Activate Conda Environment
+source activate ${ENVIRONMENT}   # Activate Conda Environment
 echo "Libraries from: ${LD_LIBRARY_PATH}"
 
 # Setup NCCL Debug Status
