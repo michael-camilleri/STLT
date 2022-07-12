@@ -42,6 +42,8 @@ def inference(args):
         include_hopper=args.include_hopper,
         spatial_size=args.resize_height,
         crop_scale=args.crop_scale,
+        bbox_scale=args.bbox_scale,
+        size_jitter=args.size_jitter,
         debug_size=args.debug_size,
         train=False,
     )

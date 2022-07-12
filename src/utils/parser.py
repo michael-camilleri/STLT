@@ -242,6 +242,19 @@ class Parser:
             help="Scaling prior to cropping"
         )
         self.parser.add_argument(
+            "--bbox_scale",
+            type=int,
+            default=128,
+            help="Resize BBoxes to this size (width and height)"
+        )
+        self.parser.add_argument(
+            "--size_jitter",
+            type=int,
+            nargs=2,
+            default=(0, 0),
+            help="Range of values (pixels) to add to BBox co-ordinates"
+        )
+        self.parser.add_argument(
             "--output_path",
             type=str,
             default=None,

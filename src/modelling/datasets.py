@@ -301,13 +301,92 @@ class FrameDataSet(Dataset):
 
 class BBoxDataSet(Dataset):
     """
-    TODO This Class extracts only the BBox regions in the frame of interest
+    This Class extracts only the BBox regions in the frame of interest:
+        1. If there is no BBox or no frame exists, then it is just an array of all zeros.
+        2. No Scaling of the raw frames is done: rather, we just get the BBox crop as required.
+        3. In terms of Augmentations:
+            * config.size_jitter is used to randomly add padding to the bbox
+            * the resulting bbox is scaled to a square of size config.bbox_scale
 
     As for the Frame Dataset:
         1. The Videos Path is the absolute path to the base Frames
         2. Currently, this supports only all videos of the same size.
     """
-    pass
+    def __init__(self, config: DataConfig, json_file=None):
+        self.config = config
+        self.json_file = json_file if json_file is not None else json.load(open(self.config.dataset_path))
+        self.labels = self.config.labels
+
+        # Compute Indices
+        fpb = len(self.json_file[0]['frames'])
+        if fpb % 2 != 1:
+            raise ValueError('Number of Frames per BTI must be ODD!')
+        center_frame = fpb // 2
+        sample_range = self.config.appearance_samples * self.config.appearance_stride
+        if (center_frame + sample_range) >= fpb:
+            raise ValueError('Number of sampled frames must be within number of frames.')
+        self.indices = np.arange(
+            center_frame - sample_range, center_frame + sample_range + 1, self.config.appearance_stride
+        )
+
+        # Transformation Pipeline
+        #  - The only differences between train/validate are the size and colour jitters
+        if self.config.train:
+            self.jitter = np.random.default_rng()
+            self.transforms = Compose([
+                Resize(self.config.bbox_scale),  # First Scale to appropriate scale
+                ColorJitter(brightness=(0.75, 1.25), contrast=(0.75, 1.25)),
+                ToTensor(),
+                Normalize(mean=self.config.normaliser_means, std=self.config.normaliser_stds),
+            ])
+        else:
+            self.jitter = None
+            self.transforms = Compose([
+                Resize(self.config.bbox_scale),  # Again resize
+                ToTensor(),
+                Normalize(mean=self.config.normaliser_means, std=self.config.normaliser_stds),
+            ])
+
+    def __len__(self):
+        return self.config.debug_size if self.config.debug_size is not None else len(self.json_file)
+
+    def __getitem__(self, idx: int):
+        # Prepare MetaData
+        _sample = self.json_file[idx]
+
+        # Resolve Size-Jitter
+        if self.jitter:
+            _add = self.jitter.integers(*self.config.size_jitter, size=4, endpoint=True)
+        else:
+            _add = np.zeros(4)
+
+        # Load frames
+        frm_pth = os.path.join(self.config.videos_path, _sample['video'], "img_{:05d}.jpg")
+        video_frames = []
+        #  I do this one by one to avoid memory overload
+        for ix in self.indices:
+            # Get Frame Data
+            frm_data = _sample["frames"][ix]["frame_objects"]
+            frm_img = Image.open(frm_pth.format(ix+_sample['offset']))
+
+            # Extract BBox for Mouse (if any)
+            try:
+                bbx_ = [f for f in frm_data if f['category'] == 'mouse'][0]
+                bbx_coords = np.asarray([bbx_["x1"], bbx_["y1"], bbx_["x2"], bbx_["y2"]]) + _add
+                mse_bbx = self.transforms(frm_img.crop(bbx_coords))
+            except IndexError:
+                mse_bbx = self.transforms(Image.new('RGB', self.config.bbox_scale))
+
+            # Append to list
+            video_frames.append(mse_bbx)
+
+        # Build Batch
+        video_frames = torch.stack(video_frames, dim=0).transpose(0, 1)
+
+        # Obtain video label
+        action = torch.tensor(int(self.labels[re.sub("[\[\]]", "", _sample["template"])]))
+
+        return {"video_id": _sample['id'], "video_frames": video_frames, "labels": action}
 
 
 class AppearanceDataset(Dataset):
@@ -386,7 +465,7 @@ class MultimodalDataset(Dataset):
     def __init__(self, config: DataConfig):
         if config.dataset_name == 'mouse':
             self.layout_dataset = MouseDataset(config)
-            self.appearance_dataset = FrameDataSet(config, self.layout_dataset.json_file)
+            self.appearance_dataset = BBoxDataSet(config, self.layout_dataset.json_file)
         else:
             self.layout_dataset = StltDataset(config)
             self.appearance_dataset = AppearanceDataset(config, self.layout_dataset.json_file)
@@ -409,6 +488,7 @@ datasets_factory = {
     "appearance": AppearanceDataset,
     "layout": StltDataset,
     "mouse": MouseDataset,
+    "bbox": BBoxDataSet,
     "multimodal": MultimodalDataset,
 }
 

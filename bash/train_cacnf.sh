@@ -15,8 +15,8 @@
 #     [Layout Stride] - Stride for layout sampling
 #     [App Samples] - Number of samples in appearance stream
 #     [App Stride] - Stride for appearance sampling
-#     [Resolution] - Image Height Size
-#     [Resize]   - Random-Resize augmentation (float)
+#     [Resolution] - BBOX size rescaling
+#     [Jitter]   - Random jitter to apply to corners of BBoxes (max size)
 #   -- Training Parameters --
 #     [Batch]    - Batch-Size
 #     [Rate]     - Learning Rate
@@ -31,7 +31,7 @@
 
 #
 #  USAGE:
-#     srun --time=12-23:00:00 --gres=gpu:1 --mem=40G --partition=apollo --nodelist=apollo1 bash/train_cacnf.sh 4 8 4 4 36 3 12 1 256 1 4 0.0000001 50 2 Fixed Frames_DCE N &> ~/logs/train_cacnf_36+3_1e-7.log
+#     srun --time=12-23:00:00 --gres=gpu:1 --mem=40G --partition=apollo --nodelist=apollo1 bash/train_cacnf.sh 4 8 4 4 36 3 12 1 64 1 4 0.0000001 50 2 Fixed Frames_DCE N &> ~/logs/train_cacnf_36+3_1e-7.log
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
@@ -51,7 +51,7 @@ LAYOUT_STRIDE=${6}
 APP_SAMPLES=${7}
 APP_STRIDE=${8}
 RESOLUTION=${9}
-RESIZE_CROP=${10}
+SIZE_JITTER=${10}
 
 BATCH_SIZE=${11}
 LR=${12}
@@ -65,9 +65,9 @@ ENVIRONMENT=${18}
 
 # Derivative Values
 ARCHITECTURE="A[${SPATIAL}-${TEMPORAL}-${APPEARANCE}-${FUSION}-Y-Y]"
-DATA_FORMAT="D[${LAYOUT_SAMPLES}_${LAYOUT_STRIDE}-${APP_SAMPLES}-${APP_STRIDE}-${RESOLUTION}_${RESIZE_CROP}]"
+DATA_FORMAT="D[${LAYOUT_SAMPLES}_${LAYOUT_STRIDE}-${APP_SAMPLES}-${APP_STRIDE}-${RESOLUTION}_${SIZE_JITTER}]"
 LEARNING="L[${BATCH_SIZE}_${LR}_${MAX_EPOCHS}_${WARMUP_ITER}]"
-OUT_NAME=${ARCHITECTURE}_${DATA_FORMAT}_${LEARNING}_CAF
+OUT_NAME=${ARCHITECTURE}_${DATA_FORMAT}_${LEARNING}_CAF_BBX
 
 # Path Values
 SCRATCH_HOME=/disk/scratch/${USER}
@@ -80,7 +80,7 @@ OUTPUT_DIR="${HOME}/models/CACNF/Trained/${PATH_OFFSET}/"
 echo "Setting up Conda enviroment on ${SLURM_JOB_NODELIST}: Config=${OUT_NAME}"
 echo "Using configuration: ${OUT_NAME}, with ${FRAMES_DIR} images and ${PATH_OFFSET} data split."
 set -e # Make script bail out after first error
-source activate ${ENVIRONMENT}   # Activate Conda Environment
+source activate "${ENVIRONMENT}"   # Activate Conda Environment
 echo "Libraries from: ${LD_LIBRARY_PATH}"
 
 # Setup NCCL Debug Status
@@ -130,7 +130,7 @@ python src/train.py  \
   --save_model_path "${OUTPUT_DIR}/${OUT_NAME}.pth" \
   --layout_samples "${LAYOUT_SAMPLES}" --layout_stride "${LAYOUT_STRIDE}" \
   --appearance_samples "${APP_SAMPLES}" --appearance_stride "${APP_STRIDE}" \
-  --resize_height "${RESOLUTION}" --crop_scale "${RESIZE_CROP}" \
+  --bbox_scale "${RESOLUTION}" --size_jitter -"${SIZE_JITTER}" "${SIZE_JITTER}" \
   --num_spatial_layers "${SPATIAL}" --num_temporal_layers "${TEMPORAL}" \
   --num_appearance_layers "${APPEARANCE}" --num_fusion_layers "${FUSION}" \
   --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
