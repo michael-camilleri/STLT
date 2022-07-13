@@ -373,6 +373,7 @@ class BBoxDataSet(Dataset):
             try:
                 bbx_ = [f for f in frm_data if f['category'] == 'mouse'][0]
                 bbx_coords = np.asarray([bbx_["x1"], bbx_["y1"], bbx_["x2"], bbx_["y2"]]) + _add
+                bbx_coords = fix_box(bbx_coords, (self.config.video_size[1], self.config.video_size[0]))
                 mse_bbx = self.transforms(frm_img.crop(bbx_coords))
             except IndexError:
                 mse_bbx = self.transforms(Image.new('RGB', self.config.bbox_scale))
