@@ -67,7 +67,7 @@ ENVIRONMENT=${18}
 ARCHITECTURE="A[${SPATIAL}-${TEMPORAL}-${APPEARANCE}-${FUSION}-Y-Y]"
 DATA_FORMAT="D[${LAYOUT_SAMPLES}_${LAYOUT_STRIDE}-${APP_SAMPLES}-${APP_STRIDE}-${RESOLUTION}_${RESIZE_CROP}]"
 LEARNING="L[${BATCH_SIZE}_${LR}_${MAX_EPOCHS}_${WARMUP_ITER}]"
-OUT_NAME=${ARCHITECTURE}_${DATA_FORMAT}_${LEARNING}_CAF
+OUT_NAME=${ARCHITECTURE}_${DATA_FORMAT}_${LEARNING}_CAF_FRM
 
 # Path Values
 SCRATCH_HOME=/disk/scratch/${USER}
@@ -133,7 +133,7 @@ python src/train.py  \
   --resize_height "${RESOLUTION}" --crop_scale "${RESIZE_CROP}" \
   --num_spatial_layers "${SPATIAL}" --num_temporal_layers "${TEMPORAL}" \
   --num_appearance_layers "${APPEARANCE}" --num_fusion_layers "${FUSION}" \
-  --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
+  --normaliser_mean 0.271 0.271 0.271 --normaliser_std 0.230 0.230 0.230 \
   --batch_size "${BATCH_SIZE}" --learning_rate "${LR}" --weight_decay 1e-5 --clip_val 5.0 \
   --epochs "${MAX_EPOCHS}" --warmup_epochs "${WARMUP_ITER}"  \
   --select_best top1 --which_score caf --num_workers 2

@@ -178,7 +178,7 @@ def train(args):
             torch.save(model.state_dict(), args.save_model_path)
             if args.save_backbone_path:
                 torch.save(model.backbone.state_dict(), args.save_backbone_path)
-            with open(op.join(op.dirname(args.save_model_path), 'best_model.txt'), 'w') as f:
+            with open(op.splitext(args.save_model_path)[0] + '.best.txt', 'w') as f:
                 f.write(f'Epoch: {epoch+1}\n')
                 f.write(f'Top1: {metrics["top1"]["caf"]}')
 
