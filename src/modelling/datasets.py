@@ -16,6 +16,12 @@ from utils.data_utils import IdentityTransform, VideoColorJitter, fix_box, \
 from modelling.configs import DataConfig
 
 
+# # DEBUG
+# import matplotlib.pyplot as plt
+# def to_tensor(pil_img):
+#     return ToTensor()(pil_img).transpose(0, 2).transpose(0, 1)
+
+
 class StltDataset(Dataset):
     def __init__(self, config: DataConfig):
         self.config = config
