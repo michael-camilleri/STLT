@@ -33,6 +33,7 @@ class DataConfig:
         _bbscale = kwargs.pop("bbox_scale", 128)
         self.bbox_scale = (_bbscale, _bbscale)
         self.size_jitter = kwargs.pop("size_jitter", (0, 0))
+        self.bbox_pad = kwargs.pop("bbox_pad", 50),
         self.debug_size = kwargs.pop("debug_size", None)
         self.maintain_identities = kwargs.pop("maintain_identities", False)
         self.include_hopper = kwargs.pop("include_hopper", False)

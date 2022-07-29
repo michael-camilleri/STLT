@@ -43,6 +43,7 @@ def inference(args):
         spatial_size=args.resize_height,
         crop_scale=args.crop_scale,
         bbox_scale=args.bbox_scale,
+        bbox_pad=args.bbox_pad,
         size_jitter=args.size_jitter,
         debug_size=args.debug_size,
         train=False,

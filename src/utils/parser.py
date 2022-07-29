@@ -248,6 +248,12 @@ class Parser:
             help="Resize BBoxes to this size (width and height)"
         )
         self.parser.add_argument(
+            "--bbox_pad",
+            type=int,
+            default=50,
+            help="BBOX padding"
+        )
+        self.parser.add_argument(
             "--size_jitter",
             type=int,
             nargs=2,

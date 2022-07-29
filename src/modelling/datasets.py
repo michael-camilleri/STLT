@@ -314,6 +314,10 @@ class BBoxDataSet(Dataset):
             * config.size_jitter is used to randomly add padding to the bbox
             * the resulting bbox is scaled to a square of size config.bbox_scale
 
+    The above is in one channel:
+        1. In another channel, there is the whole image
+        2. In the last channel, there is the bbox with a wider BBOX (Padding)
+
     As for the Frame Dataset:
         1. The Videos Path is the absolute path to the base Frames
         2. Currently, this supports only all videos of the same size.
@@ -353,6 +357,8 @@ class BBoxDataSet(Dataset):
                 Normalize(mean=self.config.normaliser_means, std=self.config.normaliser_stds),
             ])
 
+        self.padding = np.asarray([-1, -1, 1, 1]) * self.config.bbox_pad
+
     def __len__(self):
         return self.config.debug_size if self.config.debug_size is not None else len(self.json_file)
 
@@ -375,14 +381,19 @@ class BBoxDataSet(Dataset):
             frm_data = _sample["frames"][ix]["frame_objects"]
             frm_img = Image.open(frm_pth.format(ix+_sample['offset']))
 
-            # Extract BBox for Mouse (if any)
+            # Extract Full Frame
+            mse_bbx = self.transforms(frm_img)
+
+            # Extract partial Frames
             try:
                 bbx_ = [f for f in frm_data if f['category'] == 'mouse'][0]
                 bbx_coords = np.asarray([bbx_["x1"], bbx_["y1"], bbx_["x2"], bbx_["y2"]]) + _add
-                bbx_coords = fix_box(bbx_coords, (self.config.video_size[1], self.config.video_size[0]))
-                mse_bbx = self.transforms(frm_img.crop(bbx_coords))
+                bbx_foc = fix_box(bbx_coords, (self.config.video_size[1], self.config.video_size[0]))
+                bbx_pad = fix_box(bbx_coords + self.padding, (self.config.video_size[1], self.config.video_size[0]))
+                mse_bbx[1, :, :] = self.transforms(frm_img.crop(bbx_foc))[0, :, :]
+                mse_bbx[2, :, :] = self.transforms(frm_img.crop(bbx_pad))[0, :, :]
             except IndexError:
-                mse_bbx = self.transforms(Image.new('RGB', self.config.bbox_scale))
+                mse_bbx[1:, :, :] = self.transforms(Image.new('RGB', self.config.bbox_scale))[1:, :, :]
 
             # Append to list
             video_frames.append(mse_bbx)

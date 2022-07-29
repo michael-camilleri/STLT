@@ -17,6 +17,7 @@
 #     [App Stride] - Stride for appearance sampling
 #     [Resolution] - BBOX size rescaling
 #     [Jitter]   - Random jitter to apply to corners of BBoxes (max size)
+#     [Padding]  - Padding to use around BBox
 #   -- Training Parameters --
 #     [Batch]    - Batch-Size
 #     [Rate]     - Learning Rate
@@ -31,7 +32,7 @@
 
 #
 #  USAGE:
-#     srun --time=12-23:00:00 --gres=gpu:1 --mem=40G --partition=apollo --nodelist=apollo1 bash/train_cacnf.sh 4 8 4 4 36 3 12 1 64 1 4 0.0000001 50 2 Fixed Frames_DCE N &> ~/logs/train_cacnf_36+3_1e-7.log
+#     srun --time=12-23:00:00 --gres=gpu:1 --mem=40G --partition=apollo --nodelist=apollo1 bash/train_cacnf.sh 4 8 4 4 36 3 12 1 64 1 50 4 0.0000001 50 2 Fixed Frames_DCE N &> ~/logs/train_cacnf_36+3_1e-7.log
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
@@ -52,20 +53,21 @@ APP_SAMPLES=${7}
 APP_STRIDE=${8}
 RESOLUTION=${9}
 SIZE_JITTER=${10}
+PADDING=${11}
 
-BATCH_SIZE=${11}
-LR=${12}
-MAX_EPOCHS=${13}
-WARMUP_ITER=${14}
+BATCH_SIZE=${12}
+LR=${13}
+MAX_EPOCHS=${14}
+WARMUP_ITER=${15}
 
-PATH_OFFSET=${15}
-FRAMES_DIR=${16}
-FORCE_FRAMES=${17,,}
-ENVIRONMENT=${18}
+PATH_OFFSET=${16}
+FRAMES_DIR=${17}
+FORCE_FRAMES=${18,,}
+ENVIRONMENT=${19}
 
 # Derivative Values
 ARCHITECTURE="A[${SPATIAL}-${TEMPORAL}-${APPEARANCE}-${FUSION}-Y-Y]"
-DATA_FORMAT="D[${LAYOUT_SAMPLES}_${LAYOUT_STRIDE}-${APP_SAMPLES}-${APP_STRIDE}-${RESOLUTION}_${SIZE_JITTER}]"
+DATA_FORMAT="D[${LAYOUT_SAMPLES}_${LAYOUT_STRIDE}-${APP_SAMPLES}-${APP_STRIDE}-${RESOLUTION}_${SIZE_JITTER}_${PADDING}]"
 LEARNING="L[${BATCH_SIZE}_${LR}_${MAX_EPOCHS}_${WARMUP_ITER}]"
 OUT_NAME=${ARCHITECTURE}_${DATA_FORMAT}_${LEARNING}_CAF_BBX
 
@@ -130,7 +132,7 @@ python src/train.py  \
   --save_model_path "${OUTPUT_DIR}/${OUT_NAME}.pth" \
   --layout_samples "${LAYOUT_SAMPLES}" --layout_stride "${LAYOUT_STRIDE}" \
   --appearance_samples "${APP_SAMPLES}" --appearance_stride "${APP_STRIDE}" \
-  --bbox_scale "${RESOLUTION}" --size_jitter -"${SIZE_JITTER}" "${SIZE_JITTER}" \
+  --bbox_scale "${RESOLUTION}" --bbox_pad "${PADDING}" --size_jitter -"${SIZE_JITTER}" "${SIZE_JITTER}" \
   --num_spatial_layers "${SPATIAL}" --num_temporal_layers "${TEMPORAL}" \
   --num_appearance_layers "${APPEARANCE}" --num_fusion_layers "${FUSION}" \
   --normaliser_mean 0.271 0.271 0.271 --normaliser_std 0.230 0.230 0.230 \
