@@ -135,7 +135,7 @@ python src/train.py  \
   --bbox_scale "${RESOLUTION}" --bbox_pad "${PADDING}" --size_jitter -"${SIZE_JITTER}" "${SIZE_JITTER}" \
   --num_spatial_layers "${SPATIAL}" --num_temporal_layers "${TEMPORAL}" \
   --num_appearance_layers "${APPEARANCE}" --num_fusion_layers "${FUSION}" \
-  --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
+  --normaliser_mean 0.271 0.271 0.271 --normaliser_std 0.230 0.230 0.230 \
   --batch_size "${BATCH_SIZE}" --learning_rate "${LR}" --weight_decay 1e-5 --clip_val 5.0 \
   --epochs "${MAX_EPOCHS}" --warmup_epochs "${WARMUP_ITER}"  \
   --select_best top1 --which_score caf --num_workers 2
