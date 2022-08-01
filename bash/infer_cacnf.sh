@@ -10,10 +10,16 @@
 #     [Temporal] - Number of Temporal Layers
 #     [Appearance] - Number of Appearance Layers (on top of ResNet)
 #     [Fusion] - Number of Fusion Layers
-#     [Resolution] - Image Height Size
 
-#   -- Training/Features --
-#     [Cropping] - Up-scaling factor prior to cropping
+#   -- Data Format Parameters --
+#     [Layout Samples] - Number of samples in layout stream
+#     [Layout Stride] - Stride for layout sampling
+#     [App Samples] - Number of samples in appearance stream
+#     [App Stride] - Stride for appearance sampling
+#     [Resolution] - Image Height Size
+#     [Resize]   - Centre-Crop Size
+
+#   -- Loading Parameters --
 #     [Batch_size] - Due to a weird architectural strategy, it seems that the batch sizes must match
 
 #   -- Paths/Setup --
@@ -39,16 +45,21 @@ SPATIAL=${1}
 TEMPORAL=${2}
 APPEARANCE=${3}
 FUSION=${4}
-RESOLUTION=${5}
 
-RESIZE_CROP=${6}
-BATCH_SIZE=${7}
+LAYOUT_SAMPLES=${5}
+LAYOUT_STRIDE=${6}
+APP_SAMPLES=${7}
+APP_STRIDE=${8}
+RESOLUTION=${9}
+RESIZE_CROP=${10}
 
-MODEL_PATH=${8}
-DATASET=${9}
-PATH_OFFSET=${10}
-FRAMES_DIR=${11}
-FORCE_FRAMES=${12,,}
+BATCH_SIZE=${11}
+
+MODEL_PATH=${12}
+DATASET=${13}
+PATH_OFFSET=${14}
+FRAMES_DIR=${15}
+FORCE_FRAMES=${16,,}
 
 # Derivative Values
 if [ "${DATASET,,}" = "test" ]; then
@@ -117,8 +128,10 @@ python src/inference.py \
     --checkpoint_path "${HOME}/models/CACNF/Trained/${MODEL_PATH}.pth" \
     --resnet_model_path "${HOME}/models/CACNF/Base/r3d50_KMS_200ep.pth" \
     --output_path "${RESULT_PATH}/cacnf_${DATASET}" \
-    --layout_num_frames 25 --appearance_num_frames 25 --resize_height "${RESOLUTION}" \
-    --crop_scale "${RESIZE_CROP}" --num_spatial_layers "${SPATIAL}" --num_temporal_layers "${TEMPORAL}" \
+    --layout_samples "${LAYOUT_SAMPLES}" --layout_stride "${LAYOUT_STRIDE}" \
+    --appearance_samples "${APP_SAMPLES}" --appearance_stride "${APP_STRIDE}" \
+    --resize_height "${RESOLUTION}" --crop_scale "${RESIZE_CROP}" \
+    --num_spatial_layers "${SPATIAL}" --num_temporal_layers "${TEMPORAL}" \
     --num_appearance_layers "${APPEARANCE}" --num_fusion_layers "${FUSION}" \
     --normaliser_mean 69.201 69.201 69.201 --normaliser_std 58.571 58.571 58.571 \
     --which_logits caf --batch_size "${BATCH_SIZE}" --num_workers 2
