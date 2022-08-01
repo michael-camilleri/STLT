@@ -31,7 +31,7 @@
 #                       known that the machine contains the right data splits.
 #
 #  USAGE:
-#     srun --time=5:00:00 --gres=gpu:1 --partition=apollo --nodelist=apollo1 bash/infer_cacnf.sh 4 8 4 4 256 1.0 4 "Fixed/current_best" Train Fixed N &> ~/logs/infer_cacnf_256_5e-7_00_V.log
+#     srun --time=2:00:00 --gres=gpu:1 --mem=40G --nodelist=charles17 bash/infer_cacnf.sh 4 8 4 4 36 3 12 2 256 1 4 SOTA/trained Train Fixed Frames_Raw_Ext N &> ~/logs/infer_cacnf.SOTA.train.out
 #     * N.B.: The above should be run from the root STLT directory.
 
 #  Data Structures
@@ -120,7 +120,8 @@ echo " Inferring Behaviours for ${DATASET} using model ${MODEL_PATH}"
 mkdir -p "${RESULT_PATH}"
 
 python src/inference.py \
-    --dataset_name something --dataset_type multimodal --model_name cacnf --videos_as_frames \
+    --dataset_name mouse --dataset_type multimodal --model_name cacnf \
+    --maintain_identities --include_hopper --video_size 1280 720 \
     --test_dataset_path "${SCRATCH_DATA}/${DATASET}/STLT.Annotations.json" \
     --labels_path "${SCRATCH_DATA}/STLT.Schema.json" \
     --videoid2size_path "${SCRATCH_DATA}/STLT.Sizes.json" \
