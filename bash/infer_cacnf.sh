@@ -124,7 +124,6 @@ python src/inference.py \
     --maintain_identities --include_hopper --video_size 1280 720 \
     --test_dataset_path "${SCRATCH_DATA}/${DATASET}/STLT.Annotations.json" \
     --labels_path "${SCRATCH_DATA}/STLT.Schema.json" \
-    --videoid2size_path "${SCRATCH_DATA}/STLT.Sizes.json" \
     --videos_path "${SCRATCH_DATA}/${FRAMES_DIR}" \
     --checkpoint_path "${HOME}/models/CACNF/Trained/${MODEL_PATH}.pth" \
     --resnet_model_path "${HOME}/models/CACNF/Base/r3d50_KMS_200ep.pth" \
